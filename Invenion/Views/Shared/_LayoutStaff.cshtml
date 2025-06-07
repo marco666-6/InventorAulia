@@ -1,0 +1,249 @@
+﻿@using Invenion.Function
+@using Microsoft.AspNetCore.Http;
+@inject IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Invenion Staff</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <!-- Third-party CSS -->
+    <link rel="stylesheet" href="~/lib/dataTables/datatables.min.css" />
+    <link rel="stylesheet" href="~/lib/select2/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="~/lib/sweetalert2/dist/sweetalert2.min.css" />
+    <link rel="stylesheet" href="~/lib/highcharts/css/highcharts.css" />
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class='bx bx-cube-alt'></i>
+            </div>
+            <div class="brand">Invenion</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <div class="nav-item">
+                    <a href="@Url.Action("Dashboard", "Staff")" class="nav-link @Html.IsActive("Staff", "Dashboard")">
+                        <i class='bx bx-home-alt'></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="@Url.Action("Equipment", "Staff")" class="nav-link @Html.IsActive("Staff", "Equipment")">
+                        <i class='bx bx-package'></i>
+                        <span>Available Equipment</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="@Url.Action("SubmitRequest", "Staff")" class="nav-link @Html.IsActive("Staff", "SubmitRequest")">
+                        <i class='bx bx-plus-circle'></i>
+                        <span>Submit Request</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="@Url.Action("MyRequests", "Staff")" class="nav-link @Html.IsActive("Staff", "MyRequests")">
+                        <i class='bx bx-receipt'></i>
+                        <span>My Requests</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <div class="nav-item">
+                    <a href="@Url.Action("Profile", "Staff")" class="nav-link @Html.IsActive("Staff", "Profile")">
+                        <i class='bx bx-user'></i>
+                        <span>Profile</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="@Url.Action("ChangePassword", "Staff")" class="nav-link @Html.IsActive("Staff", "ChangePassword")">
+                        <i class='bx bx-lock-alt'></i>
+                        <span>Change Password</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="@Url.Action("Notifications", "Staff")" class="nav-link @Html.IsActive("Staff", "Notifications")">
+                        <i class='bx bx-bell'></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-item">
+                    <a href="@Url.Action("Logout", "Staff")" class="nav-link" onclick="confirmLogout(event)">
+                        <i class='bx bx-log-out'></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <div class="nav-left">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class='bx bx-menu'></i>
+                </button>
+            </div>
+            
+            <div class="nav-right">
+                <button class="notification-btn" onclick="window.location.href='@Url.Action("Notifications", "Staff")'">
+                    <i class='bx bx-bell'></i>
+                    <div class="notification-badge" id="notificationBadge" style="display: none;"></div>
+                </button>
+                
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        @{
+                            string fullName = HttpContextAccessor.HttpContext.Session.GetString("FullName") ?? "User";
+                            string firstLetter = fullName.Substring(0, 1).ToUpper();
+                        }
+                        <span class="avatar-letter">@firstLetter</span>
+                    </div>
+                    <div class="d-none d-md-block">
+                        <div style="font-size: 0.875rem; font-weight: 500; color: var(--dark);">@(HttpContextAccessor.HttpContext.Session.GetString("FullName") ?? "Staff User")</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-600);">@(HttpContextAccessor.HttpContext.Session.GetString("Role") ?? "Staff")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+            <!-- Alert Messages -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["InfoMessage"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    @TempData["InfoMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @RenderBody()
+        </div>
+    </div>
+
+    <!-- Bootstrap and jQuery Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Third-party JS -->
+    <script src="~/lib/dataTables/datatables.min.js"></script>
+    <script src="~/lib/highcharts/highcharts.js"></script>
+    <script src="~/lib/highcharts/highcharts-more.js"></script>
+    <script src="~/lib/highcharts/modules/exporting.js"></script>
+    <script src="~/lib/highcharts/modules/export-data.js"></script>
+    <script src="~/lib/highcharts/modules/accessibility.js"></script>
+    <script src="~/lib/select2/dist/js/select2.min.js"></script>
+    <script src="~/lib/sweetalert2/dist/sweetalert2.min.js"></script>
+    <!-- Custom JS -->
+    <script>
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+        
+        // Mobile sidebar toggle
+        if (window.innerWidth <= 768) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('mobile-open');
+            });
+        }
+        
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+
+        // Logout confirmation
+        function confirmLogout(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: 'Confirm Logout',
+                text: 'Are you sure you want to logout?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, logout'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '@Url.Action("Logout", "Staff")';
+                }
+            });
+        }
+
+        /// Check for notifications periodically
+        function checkNotifications() {
+            $.ajax({
+                url: '@Url.Action("GetNotificationCount", "Staff")',
+                method: 'GET',
+                success: function(data) {
+                    var badge = document.getElementById('notificationBadge');
+                    if (data.count > 0) {
+                        if (badge) {
+                            badge.textContent = data.count;
+                            badge.style.display = 'block';
+                        } else {
+                            // Create badge if it doesn't exist
+                            var notificationBtn = document.querySelector('.notification-btn');
+                            var newBadge = document.createElement('div');
+                            newBadge.className = 'notification-badge pulse';
+                            newBadge.id = 'notificationBadge';
+                            newBadge.textContent = data.count;
+                            notificationBtn.appendChild(newBadge);
+                        }
+                    } else {
+                        if (badge) {
+                            badge.style.display = 'none';
+                        }
+                    }
+                },
+                error: function() {
+                    console.log('Error checking notifications');
+                }
+            });
+        }
+        
+        // Check notifications every 30 seconds
+        setInterval(checkNotifications, 30000);
+        
+        // Initial check on page load
+        checkNotifications();
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,454 @@
+﻿@model List<Invenion.Models.Notification>
+@{
+    ViewData["Title"] = "Notifications";
+    Layout = "~/Views/Shared/_LayoutStaff.cshtml";
+}
+
+<style>
+    .notifications-container {
+        padding: 20px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .page-title h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: none;
+    }
+
+    .notifications-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .notification-item {
+        display: flex;
+        padding: 20px 25px;
+        border-bottom: 1px solid #eee;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+
+    .notification-item:hover {
+        background: #f8f9fa;
+    }
+
+    .notification-item.unread {
+        background: #f8faff;
+        border-left: 4px solid #667eea;
+    }
+
+    .notification-item.read {
+        opacity: 0.8;
+    }
+
+    .notification-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+
+    .notification-icon i {
+        font-size: 20px;
+        color: white;
+    }
+
+    .notification-icon.info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .notification-icon.success {
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    }
+
+    .notification-icon.warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .notification-icon.error {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    }
+
+    .notification-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+        gap: 15px;
+    }
+
+    .notification-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .notification-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .notification-time {
+        font-size: 0.8rem;
+        color: #6c757d;
+        white-space: nowrap;
+    }
+
+    .notification-badge {
+        width: 8px;
+        height: 8px;
+        background: #667eea;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .notification-message {
+        color: #495057;
+        margin-bottom: 8px;
+        line-height: 1.5;
+        font-size: 0.95rem;
+    }
+
+    .notification-date {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    .notification-actions {
+        margin-left: 15px;
+        display: flex;
+        align-items: flex-start;
+        padding-top: 5px;
+    }
+
+    .empty-state {
+        padding: 40px 20px;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+
+    .empty-icon i {
+        font-size: 2.5rem;
+        color: #6c757d;
+    }
+
+    .empty-state h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        max-width: 400px;
+        margin: 0 auto 25px;
+        line-height: 1.6;
+    }
+</style>
+
+<div class="notifications-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h1>Notifications</h1>
+            <p class="text-muted">Stay updated with your latest activities and system alerts</p>
+        </div>
+        <div class="page-actions">
+            @if (Model.Any(n => !n.IsRead))
+            {
+                <button class="btn btn-outline-primary" onclick="markAllAsRead()">
+                    <i class='bx bx-check-double'></i>
+                    Mark All as Read
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- Notifications Content -->
+    <div class="row">
+        <div class="col-12">
+            @if (Model.Any())
+            {
+                <div class="card">
+                    <div class="card-body p-0">
+                        <div class="notifications-list">
+                            @foreach (var notification in Model)
+                            {
+                                <div class="notification-item @(notification.IsRead ? "read" : "unread")" data-id="@notification.NotificationID">
+                                    <div class="notification-icon @GetNotificationIconClass(notification.Type)">
+                                        <i class='@GetNotificationIcon(notification.Type)'></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <div class="notification-header">
+                                            <h6 class="notification-title">@notification.Title</h6>
+                                            <div class="notification-meta">
+                                                <span class="notification-time">
+                                                    @GetTimeAgo(notification.CreatedDate)
+                                                </span>
+                                                @if (!notification.IsRead)
+                                                {
+                                                    <span class="notification-badge"></span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <p class="notification-message">@notification.Message</p>
+                                        <div class="notification-date">
+                                            @notification.CreatedDate.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                                        </div>
+                                    </div>
+                                    @if (!notification.IsRead)
+                                    {
+                                        <div class="notification-actions">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="markAsRead(@notification.NotificationID)">
+                                                <i class='bx bx-check'></i>
+                                                Mark as Read
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination or Load More (if needed) -->
+                @if (Model.Count >= 50)
+                {
+                    <div class="text-center mt-4">
+                        <p class="text-muted">Showing latest 50 notifications</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- Empty State -->
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class='bx bx-bell-off'></i>
+                            </div>
+                            <h4>No Notifications Yet</h4>
+                            <p class="text-muted">You'll see notifications here when there are updates about your equipment requests, account changes, and system announcements.</p>
+                            <a href="@Url.Action("Dashboard", "Staff")" class="btn btn-primary">
+                                <i class='bx bx-home-alt'></i>
+                                Go to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Mark single notification as read
+        function markAsRead(notificationId) {
+            $.ajax({
+                url: '@Url.Action("MarkNotificationRead", "Staff")',
+                type: 'POST',
+                data: { notificationId: notificationId },
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        var notificationItem = $('[data-id="' + notificationId + '"]');
+                        notificationItem.removeClass('unread').addClass('read');
+                        notificationItem.find('.notification-badge').remove();
+                        notificationItem.find('.notification-actions').remove();
+                        
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Marked as Read',
+                            text: 'Notification has been marked as read.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        // Check if we need to hide the "Mark All as Read" button
+                        if ($('.notification-item.unread').length === 0) {
+                            $('.page-actions').hide();
+                        }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to mark notification as read. Please try again.'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred. Please try again.'
+                    });
+                }
+            });
+        }
+
+        // Mark all notifications as read
+        function markAllAsRead() {
+            Swal.fire({
+                title: 'Mark All as Read?',
+                text: 'This will mark all unread notifications as read.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, mark all'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var unreadNotifications = $('.notification-item.unread');
+                    var notificationIds = [];
+                    
+                    unreadNotifications.each(function() {
+                        notificationIds.push($(this).data('id'));
+                    });
+
+                    // Mark each notification as read
+                    var completedRequests = 0;
+                    var totalRequests = notificationIds.length;
+
+                    if (totalRequests === 0) {
+                        return;
+                    }
+
+                    notificationIds.forEach(function(id) {
+                        $.ajax({
+                            url: '@Url.Action("MarkNotificationRead", "Staff")',
+                            type: 'POST',
+                            data: { notificationId: id },
+                            headers: {
+                                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                            },
+                            success: function(response) {
+                                completedRequests++;
+                                if (completedRequests === totalRequests) {
+                                    // All requests completed, update UI
+                                    $('.notification-item.unread')
+                                        .removeClass('unread')
+                                        .addClass('read')
+                                        .find('.notification-badge').remove();
+                                    $('.notification-actions').remove();
+                                    $('.page-actions').hide();
+                                    
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'All Marked as Read',
+                                        text: 'All notifications have been marked as read.',
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                }
+                            },
+                            error: function() {
+                                completedRequests++;
+                                if (completedRequests === totalRequests) {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Partially Completed',
+                                        text: 'Some notifications could not be marked as read.'
+                                    });
+                                }
+                            }
+                        });
+                    });
+                }
+            });
+        }
+
+        // Auto-refresh notifications every 30 seconds (optional)
+        setInterval(function() {
+            // You can implement auto-refresh here if needed
+            // For now, we'll skip this to avoid unnecessary server requests
+        }, 30000);
+    </script>
+}
+
+@functions {
+    private string GetNotificationIcon(string type)
+    {
+        return type switch
+        {
+            "Success" => "bx bx-check-circle",
+            "Warning" => "bx bx-error-circle",
+            "Error" => "bx bx-x-circle",
+            _ => "bx bx-info-circle"
+        };
+    }
+
+    private string GetNotificationIconClass(string type)
+    {
+        return type switch
+        {
+            "Success" => "success",
+            "Warning" => "warning",
+            "Error" => "error",
+            _ => "info"
+        };
+    }
+
+    private string GetTimeAgo(DateTime createdDate)
+    {
+        var timeSpan = DateTime.Now - createdDate;
+        
+        if (timeSpan.TotalMinutes < 1)
+            return "Just now";
+        if (timeSpan.TotalMinutes < 60)
+            return $"{(int)timeSpan.TotalMinutes}m ago";
+        if (timeSpan.TotalHours < 24)
+            return $"{(int)timeSpan.TotalHours}h ago";
+        if (timeSpan.TotalDays < 7)
+            return $"{(int)timeSpan.TotalDays}d ago";
+        if (timeSpan.TotalDays < 30)
+            return $"{(int)(timeSpan.TotalDays / 7)}w ago";
+        
+        return createdDate.ToString("MMM dd");
+    }
+}

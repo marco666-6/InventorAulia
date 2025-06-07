@@ -1,0 +1,513 @@
+﻿@model List<Invenion.Models.Equipment>
+@{
+    ViewData["Title"] = "Equipment Management";
+}
+
+<div class="equipment-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h1>Equipment Management</h1>
+            <p class="text-muted">Manage your inventory equipment</p>
+        </div>
+        <div class="page-actions">
+            <a href="@Url.Action("AddEquipment")" class="btn btn-primary">
+                <i class='bx bx-plus'></i>
+                Add Equipment
+            </a>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class='bx bx-check-circle'></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class='bx bx-error-circle'></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Equipment Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card stat-primary">
+                <div class="stat-icon">
+                    <i class='bx bx-package'></i>
+                </div>
+                <div class="stat-info">
+                    <h4>@Model.Count</h4>
+                    <span>Total Equipment</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-success">
+                <div class="stat-icon">
+                    <i class='bx bx-check-circle'></i>
+                </div>
+                <div class="stat-info">
+                    <h4>@Model.Count(e => e.Status == "Available")</h4>
+                    <span>Available</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-warning">
+                <div class="stat-icon">
+                    <i class='bx bx-time'></i>
+                </div>
+                <div class="stat-info">
+                    <h4>@Model.Count(e => e.Status == "Borrowed")</h4>
+                    <span>Borrowed</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-danger">
+                <div class="stat-icon">
+                    <i class='bx bx-wrench'></i>
+                </div>
+                <div class="stat-info">
+                    <h4>@Model.Count(e => e.Status == "Maintenance")</h4>
+                    <span>Maintenance</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equipment List -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Equipment List</h5>
+                <div class="search-box">
+                    <input type="text" id="equipmentSearch" class="form-control" placeholder="Search equipment...">
+                    <i class='bx bx-search'></i>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="equipmentTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Code</th>
+                                <th>Equipment Name</th>
+                                <th>Category</th>
+                                <th>Brand/Model</th>
+                                <th>Serial Number</th>
+                                <th>Status</th>
+                                <th>Purchase Date</th>
+                                <th>Warranty</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var equipment in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="equipment-code">@equipment.EquipmentCode</span>
+                                    </td>
+                                    <td>
+                                        <div class="equipment-info">
+                                            <strong>@equipment.EquipmentName</strong>
+                                            @if (!string.IsNullOrEmpty(equipment.Description))
+                                            {
+                                                <small class="text-muted d-block">@equipment.Description</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">@equipment.CategoryName</span>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(equipment.Brand) || !string.IsNullOrEmpty(equipment.Model))
+                                        {
+                                            <div class="brand-model">
+                                                @if (!string.IsNullOrEmpty(equipment.Brand))
+                                                {
+                                                    <strong>@equipment.Brand</strong>
+                                                }
+                                                @if (!string.IsNullOrEmpty(equipment.Model))
+                                                {
+                                                    <small class="text-muted d-block">@equipment.Model</small>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(equipment.SerialNumber))
+                                        {
+                                            <code>@equipment.SerialNumber</code>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @switch (equipment.Status)
+                                        {
+                                            case "Available":
+                                                <span class="status-badge status-available">
+                                                    <i class='bx bx-check-circle'></i>
+                                                    Available
+                                                </span>
+                                                break;
+                                            case "Borrowed":
+                                                <span class="status-badge status-borrowed">
+                                                    <i class='bx bx-time'></i>
+                                                    Borrowed
+                                                </span>
+                                                break;
+                                            case "Maintenance":
+                                                <span class="status-badge status-maintenance">
+                                                    <i class='bx bx-wrench'></i>
+                                                    Maintenance
+                                                </span>
+                                                break;
+                                            case "Retired":
+                                                <span class="status-badge status-retired">
+                                                    <i class='bx bx-x-circle'></i>
+                                                    Retired
+                                                </span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (equipment.PurchaseDate.HasValue)
+                                        {
+                                            @equipment.PurchaseDate.Value.ToString("MMM dd, yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (equipment.WarrantyExpiry.HasValue)
+                                        {
+                                            var isExpired = equipment.WarrantyExpiry.Value < DateTime.Now;
+                                            <span class="@(isExpired ? "text-danger" : "text-success")">
+                                                @equipment.WarrantyExpiry.Value.ToString("MMM dd, yyyy")
+                                                @if (isExpired)
+                                                {
+                                                    <small class="d-block">Expired</small>
+                                                }
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="@Url.Action("EditEquipment", new { id = equipment.EquipmentID })" 
+                                               class="btn btn-sm btn-outline-primary" title="Edit">
+                                                <i class='bx bx-edit'></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-info" 
+                                                    onclick="viewEquipmentDetails(@equipment.EquipmentID)" title="View Details">
+                                                <i class='bx bx-show'></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class='bx bx-package'></i>
+                    </div>
+                    <h4>No Equipment Found</h4>
+                    <p>Start by adding your first equipment to the inventory.</p>
+                    <a href="@Url.Action("AddEquipment")" class="btn btn-primary">
+                        <i class='bx bx-plus'></i>
+                        Add Equipment
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Equipment Details Modal -->
+<div class="modal fade" id="equipmentDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Equipment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="equipmentDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .equipment-container {
+        padding: 20px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .page-title h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+    }
+
+    .stat-icon i {
+        font-size: 20px;
+        color: white;
+    }
+
+    .stat-primary .stat-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .stat-success .stat-icon { background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); }
+    .stat-warning .stat-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .stat-danger .stat-icon { background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%); }
+
+    .stat-info h4 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 2px;
+        color: #2c3e50;
+    }
+
+    .stat-info span {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: none;
+    }
+
+    .card-header {
+        background: transparent;
+        border-bottom: 1px solid #eee;
+        padding: 20px 25px;
+    }
+
+    .search-box {
+        position: relative;
+        width: 300px;
+    }
+
+    .search-box input {
+        padding-left: 40px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    .equipment-code {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    .equipment-info strong {
+        color: #2c3e50;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        gap: 5px;
+    }
+
+    .status-available {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-borrowed {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-maintenance {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-retired {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+    }
+
+    .action-buttons .btn {
+        padding: 6px 10px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+
+    .empty-icon i {
+        font-size: 2rem;
+        color: #6c757d;
+    }
+
+    .empty-state h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #6c757d;
+        margin-bottom: 20px;
+    }
+
+    .table th {
+        font-weight: 600;
+        color: #2c3e50;
+        border-bottom: 2px solid #eee;
+    }
+
+    .table td {
+        vertical-align: middle;
+        padding: 15px 10px;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Search functionality
+        document.getElementById('equipmentSearch').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#equipmentTable tbody tr');
+            
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // View equipment details (placeholder function)
+        function viewEquipmentDetails(equipmentId) {
+            // This would typically make an AJAX call to get equipment details
+            // For now, we'll show a simple modal
+            const modal = new bootstrap.Modal(document.getElementById('equipmentDetailsModal'));
+            document.getElementById('equipmentDetailsContent').innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading equipment details...</p>
+                </div>
+            `;
+            modal.show();
+            
+            // Simulate loading delay
+            setTimeout(() => {
+                document.getElementById('equipmentDetailsContent').innerHTML = `
+                    <p>Equipment details for ID: ${equipmentId}</p>
+                    <p class="text-muted">This feature can be enhanced to show detailed equipment information, history, etc.</p>
+                `;
+            }, 1000);
+        }
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+}

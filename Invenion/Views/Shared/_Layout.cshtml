@@ -1,0 +1,198 @@
+﻿@using Invenion.Function
+@using Microsoft.AspNetCore.Http;
+@inject IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Invenion</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <!-- Third-party CSS -->
+    <link rel="stylesheet" href="~/lib/dataTables/datatables.min.css" />
+    <link rel="stylesheet" href="~/lib/select2/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="~/lib/sweetalert2/dist/sweetalert2.min.css" />
+    <link rel="stylesheet" href="~/lib/highcharts/css/highcharts.css" />
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class='bx bx-cube-alt'></i>
+            </div>
+            <div class="brand">Invenion</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <div class="nav-item">
+                    <a href="@Url.Action("Dashboard", "Admin")" class="nav-link @Html.IsActive("Admin", "Dashboard")">
+                        <i class='bx bx-home-alt'></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="@Url.Action("Equipment", "Admin")" class="nav-link @Html.IsActive("Admin", "Equipment")">
+                        <i class='bx bx-package'></i>
+                        <span>Equipment</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="@Url.Action("BorrowingRequests", "Admin")" class="nav-link @Html.IsActive("Admin", "BorrowingRequests")">
+                        <i class='bx bx-receipt'></i>
+                        <span>Borrowing Requests</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="@Url.Action("Reports", "Admin")" class="nav-link @Html.IsActive("Admin", "Reports")">
+                        <i class='bx bx-line-chart'></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <div class="nav-item">
+                    <a href="@Url.Action("Users", "Admin")" class="nav-link @Html.IsActive("Admin", "Users")">
+                        <i class='bx bx-group'></i>
+                        <span>Users</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="@Url.Action("PendingRegistrations", "Admin")" class="nav-link @Html.IsActive("Admin", "PendingRegistrations")">
+                        <i class='bx bx-user-check'></i>
+                        <span>Pending Registrations</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class='bx bx-cog'></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-item">
+                    <a href="@Url.Action("Logout", "Login")" class="nav-link">
+                        <i class='bx bx-log-out'></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <div class="nav-left">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class='bx bx-menu'></i>
+                </button>
+                
+                @* <form class="search-form">
+                    <input type="text" class="search-input" placeholder="Search anything...">
+                    <i class='bx bx-search search-icon'></i>
+                </form> *@
+            </div>
+            
+            <div class="nav-right">
+                @* <button class="notification-btn">
+                    <i class='bx bx-bell'></i>
+                    <div class="notification-badge"></div>
+                </button> *@
+                
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        @{
+                            string fullName = HttpContextAccessor.HttpContext.Session.GetString("FullName") ?? "User";
+                            string firstLetter = fullName.Substring(0, 1).ToUpper();
+                        }
+                        <span class="avatar-letter">@firstLetter</span>
+                    </div>
+                    <div class="d-none d-md-block">
+                        <div style="font-size: 0.875rem; font-weight: 500; color: var(--dark);">@(HttpContextAccessor.HttpContext.Session.GetString("FullName") ?? "Admin User")</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-600);">@(HttpContextAccessor.HttpContext.Session.GetString("Role") ?? "Administrator")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+            <!-- Alert Messages -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["InfoMessage"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    @TempData["InfoMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @RenderBody()
+        </div>
+    </div>
+
+    <!-- Bootstrap and jQuery Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Third-party JS -->
+    <script src="~/lib/dataTables/datatables.min.js"></script>
+    <script src="~/lib/highcharts/highcharts.js"></script>
+    <script src="~/lib/highcharts/highcharts-more.js"></script>
+    <script src="~/lib/highcharts/modules/exporting.js"></script>
+    <script src="~/lib/highcharts/modules/export-data.js"></script>
+    <script src="~/lib/highcharts/modules/accessibility.js"></script>
+    <script src="~/lib/select2/dist/js/select2.min.js"></script>
+    <script src="~/lib/sweetalert2/dist/sweetalert2.min.js"></script>
+    <!-- Custom JS -->
+    <script>
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+        
+        // Mobile sidebar toggle
+        if (window.innerWidth <= 768) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('mobile-open');
+            });
+        }
+        
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

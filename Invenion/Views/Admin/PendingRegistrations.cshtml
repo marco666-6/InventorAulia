@@ -1,0 +1,308 @@
+﻿@model List<Invenion.Models.User>
+@{
+    ViewData["Title"] = "Pending Registrations";
+}
+
+<div class="pending-registrations-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h1>Pending Registrations</h1>
+            <p class="text-muted">Review and approve new user registrations</p>
+        </div>
+        <div class="page-actions">
+            <a href="@Url.Action("Users")" class="btn btn-secondary">
+                <i class='bx bx-arrow-back'></i>
+                Back to Users
+            </a>
+        </div>
+    </div>
+
+    <!-- Pending Registrations -->
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var user in Model)
+            {
+                <div class="col-lg-6 col-xl-4 mb-4">
+                    <div class="registration-card">
+                        <div class="card-header">
+                            <div class="user-avatar-large">
+                                @user.FullName.Substring(0, 1).ToUpper()
+                            </div>
+                            <div class="user-basic-info">
+                                <h5>@user.FullName</h5>
+                                <p>@user.Username</p>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="user-details">
+                                <div class="detail-item">
+                                    <i class='bx bx-envelope'></i>
+                                    <span>@user.Email</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(user.Department))
+                                {
+                                    <div class="detail-item">
+                                        <i class='bx bx-building'></i>
+                                        <span>@user.Department</span>
+                                    </div>
+                                }
+                                <div class="detail-item">
+                                    <i class='bx bx-calendar'></i>
+                                    <span>@user.CreatedDate.ToString("MMM dd, yyyy 'at' HH:mm")</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-success btn-block" onclick="approveRegistration(@user.UserID, '@user.FullName')">
+                                <i class='bx bx-check'></i>
+                                Approve Registration
+                            </button>
+                            <button class="btn btn-danger btn-block mt-2" onclick="rejectRegistration(@user.UserID, '@user.FullName')">
+                                <i class='bx bx-x'></i>
+                                Reject Registration
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="empty-state">
+                    <i class='bx bx-user-check' style="font-size: 4rem;margin-bottom: 20px;opacity: 0.5;color: #28a745;"></i>
+                    <h5>No Pending Registrations</h5>
+                    <p>All user registrations have been processed.</p>
+                    <a href="@Url.Action("Users")" class="btn btn-primary">
+                        <i class='bx bx-user'></i>
+                        View All Users
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Hidden form for submissions -->
+@using (Html.BeginForm("ApproveRegistration", "Admin", FormMethod.Post, new { id = "approveForm", style = "display: none;" }))
+{
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="userId" id="approveUserId" />
+}
+
+<style>
+    .pending-registrations-container {
+        padding: 20px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .page-title h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .registration-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: none;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .registration-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+
+    .registration-card .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        border: none;
+    }
+
+    .user-avatar-large {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 20px;
+        backdrop-filter: blur(10px);
+    }
+
+    .user-basic-info h5 {
+        margin: 0 0 5px 0;
+        font-weight: 600;
+    }
+
+    .user-basic-info p {
+        margin: 0;
+        opacity: 0.8;
+        font-size: 0.9rem;
+    }
+
+    .registration-card .card-body {
+        padding: 20px;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .detail-item i {
+        font-size: 16px;
+        width: 20px;
+        color: #667eea;
+    }
+
+    .registration-card .card-footer {
+        background: #f8f9fa;
+        padding: 20px;
+        border: none;
+    }
+
+    .btn-block {
+        width: 100%;
+        display: block;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .empty-state h5 {
+        margin-bottom: 10px;
+        color: #495057;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: none;
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function approveRegistration(userId, userName) {
+            Swal.fire({
+                title: 'Approve Registration?',
+                html: `Are you sure you want to approve <strong>${userName}</strong>'s registration?<br><small class="text-muted">They will be able to access the system immediately.</small>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, approve it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Processing...',
+                        text: 'Approving registration',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Submit the form
+                    document.getElementById('approveUserId').value = userId;
+                    document.getElementById('approveForm').submit();
+                }
+            });
+        }
+
+        function rejectRegistration(userId, userName) {
+            Swal.fire({
+                title: 'Reject Registration?',
+                html: `Are you sure you want to reject <strong>${userName}</strong>'s registration?<br><small class="text-muted">This action cannot be undone.</small>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, reject it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire(
+                        'Feature Coming Soon!',
+                        'Registration rejection functionality will be implemented soon.',
+                        'info'
+                    );
+                }
+            });
+        }
+
+        // Auto-refresh every 30 seconds to check for new registrations
+        setInterval(function() {
+            // Only refresh if there are no pending operations
+            if (!document.querySelector('.swal2-container')) {
+                location.reload();
+            }
+        }, 30000);
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '@TempData["SuccessMessage"]',
+                timer: 3000,
+                showConfirmButton: false
+            });
+            </text>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '@TempData["ErrorMessage"]',
+            });
+            </text>
+        }
+    </script>
+}

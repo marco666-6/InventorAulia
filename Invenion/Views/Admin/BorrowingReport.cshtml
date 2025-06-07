@@ -1,0 +1,460 @@
+﻿@model List<Invenion.Models.BorrowingRequest>
+@{
+    ViewData["Title"] = "Borrowing Report";
+}
+
+<div class="report-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h1><i class='bx bx-bar-chart'></i> Borrowing Report</h1>
+            <p class="text-muted">Generate and view detailed borrowing reports</p>
+        </div>
+        <div class="page-actions">
+            <button type="button" class="btn btn-primary" onclick="exportReport()">
+                <i class='bx bx-download'></i> Export Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0"><i class='bx bx-filter'></i> Report Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="@Url.Action("BorrowingReport")" id="filterForm">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="startDate" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="startDate" name="startDate" 
+                               value="@ViewBag.StartDate" />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="endDate" name="endDate" 
+                               value="@ViewBag.EndDate" />
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class='bx bx-search'></i> Generate
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
+                            <i class='bx bx-refresh'></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Statistics -->
+    @if (Model.Any())
+    {
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card">
+                    <div class="stats-icon bg-primary">
+                        <i class='bx bx-list-ul'></i>
+                    </div>
+                    <div class="stats-info">
+                        <h3>@Model.Count</h3>
+                        <p>Total Requests</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card">
+                    <div class="stats-icon bg-success">
+                        <i class='bx bx-check-circle'></i>
+                    </div>
+                    <div class="stats-info">
+                        <h3>@Model.Count(r => r.Status == "Approved" || r.Status == "Borrowed" || r.Status == "Returned")</h3>
+                        <p>Approved</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card">
+                    <div class="stats-icon bg-warning">
+                        <i class='bx bx-time'></i>
+                    </div>
+                    <div class="stats-info">
+                        <h3>@Model.Count(r => r.Status == "Pending")</h3>
+                        <p>Pending</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card">
+                    <div class="stats-icon bg-danger">
+                        <i class='bx bx-x-circle'></i>
+                    </div>
+                    <div class="stats-info">
+                        <h3>@Model.Count(r => r.DaysOverdue > 0)</h3>
+                        <p>Overdue</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Report Data Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class='bx bx-table'></i> Report Data
+                @if (ViewBag.StartDate != null || ViewBag.EndDate != null)
+                {
+                    <span class="text-muted ms-2">
+                        (@(ViewBag.StartDate ?? "All") to @(ViewBag.EndDate ?? "All"))
+                    </span>
+                }
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover" id="reportTable">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Equipment</th>
+                                <th>Requester</th>
+                                <th>Department</th>
+                                <th>Request Date</th>
+                                <th>Period</th>
+                                <th>Status</th>
+                                <th>Approved By</th>
+                                <th>Days Overdue</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var request in Model)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-light text-dark">#@request.RequestID</span></td>
+                                    <td>
+                                        <div class="equipment-info">
+                                            <strong>@request.EquipmentName</strong>
+                                            <br>
+                                            <small class="text-muted">@request.EquipmentCode</small>
+                                            @if (!string.IsNullOrEmpty(request.Brand))
+                                            {
+                                                <small class="text-muted">- @request.Brand @request.Model</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>@request.RequesterName</td>
+                                    <td>@(request.Department ?? "N/A")</td>
+                                    <td>@request.RequestDate.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <small>
+                                            @request.RequestedStartDate.ToString("MMM dd") - 
+                                            @request.RequestedEndDate.ToString("MMM dd, yyyy")
+                                        </small>
+                                        @if (request.ActualStartDate.HasValue && request.ActualEndDate.HasValue)
+                                        {
+                                            <br>
+                                            <small class="text-success">
+                                                Actual: @request.ActualStartDate.Value.ToString("MMM dd") - 
+                                                @request.ActualEndDate.Value.ToString("MMM dd, yyyy")
+                                            </small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @switch (request.Status)
+                                        {
+                                            case "Pending":
+                                                <span class="badge bg-warning">Pending</span>
+                                                break;
+                                            case "Approved":
+                                                <span class="badge bg-success">Approved</span>
+                                                break;
+                                            case "Rejected":
+                                                <span class="badge bg-danger">Rejected</span>
+                                                break;
+                                            case "Borrowed":
+                                                <span class="badge bg-info">Borrowed</span>
+                                                break;
+                                            case "Returned":
+                                                <span class="badge bg-secondary">Returned</span>
+                                                break;
+                                            case "Overdue":
+                                                <span class="badge bg-danger">Overdue</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-light text-dark">@request.Status</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>@(request.ApprovedByName ?? "N/A")</td>
+                                    <td>
+                                        @if (request.DaysOverdue.HasValue && request.DaysOverdue > 0)
+                                        {
+                                            <span class="badge bg-danger">@request.DaysOverdue days</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="purpose-text" title="@request.Purpose">
+                                            @(request.Purpose.Length > 50 ? request.Purpose.Substring(0, 50) + "..." : request.Purpose)
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class='bx bx-search-alt'></i>
+                    </div>
+                    <h4>No Data Found</h4>
+                    <p class="text-muted">No borrowing requests found for the selected date range. Try adjusting your filters.</p>
+                    <button type="button" class="btn btn-primary" onclick="clearFilters()">
+                        <i class='bx bx-refresh'></i> Clear Filters
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .report-container {
+        padding: 20px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .page-title h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .page-title h1 i {
+        margin-right: 10px;
+        color: #667eea;
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        transition: transform 0.2s;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+    }
+
+    .stats-icon i {
+        font-size: 24px;
+        color: white;
+    }
+
+    .stats-info h3 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #2c3e50;
+    }
+
+    .stats-info p {
+        color: #6c757d;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .bg-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .bg-success { background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); }
+    .bg-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .bg-danger { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: none;
+    }
+
+    .card-header {
+        background: transparent;
+        border-bottom: 1px solid #eee;
+        padding: 20px 25px;
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    .card-title i {
+        margin-right: 8px;
+        color: #667eea;
+    }
+
+    .equipment-info strong {
+        color: #2c3e50;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .table td {
+        vertical-align: middle;
+        border-bottom: 1px solid #eee;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .purpose-text {
+        cursor: help;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h4 {
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+
+    .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 10px 20px;
+        transition: all 0.2s;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn i {
+        margin-right: 5px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Set default dates if not set
+        document.addEventListener('DOMContentLoaded', function() {
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+            
+            if (!startDate.value) {
+                const lastMonth = new Date();
+                lastMonth.setMonth(lastMonth.getMonth() - 1);
+                startDate.value = lastMonth.toISOString().split('T')[0];
+            }
+            
+            if (!endDate.value) {
+                const today = new Date();
+                endDate.value = today.toISOString().split('T')[0];
+            }
+        });
+
+        function clearFilters() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('filterForm').submit();
+        }
+
+        function exportReport() {
+            // Simple CSV export
+            const table = document.getElementById('reportTable');
+            if (!table) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Data',
+                    text: 'No data available to export.',
+                    confirmButtonColor: '#667eea'
+                });
+                return;
+            }
+
+            let csv = [];
+            const rows = table.querySelectorAll('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = [];
+                const cols = rows[i].querySelectorAll('td, th');
+                
+                for (let j = 0; j < cols.length; j++) {
+                    let cellText = cols[j].innerText.replace(/"/g, '""');
+                    row.push('"' + cellText + '"');
+                }
+                
+                csv.push(row.join(','));
+            }
+
+            const csvFile = new Blob([csv.join('\n')], { type: 'text/csv' });
+            const downloadLink = document.createElement('a');
+            downloadLink.download = 'borrowing_report_' + new Date().toISOString().split('T')[0] + '.csv';
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Export Successful',
+                text: 'Report has been exported successfully!',
+                confirmButtonColor: '#667eea'
+            });
+        }
+
+        // Initialize DataTable if available
+        if (typeof DataTable !== 'undefined' && document.getElementById('reportTable')) {
+            new DataTable('#reportTable', {
+                pageLength: 25,
+                order: [[4, 'desc']], // Order by request date
+                responsive: true
+            });
+        }
+    </script>
+}

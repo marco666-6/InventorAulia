@@ -1,0 +1,426 @@
+﻿@model Invenion.Models.DashboardStats
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="dashboard-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h1>Dashboard</h1>
+            <p class="text-muted">Overview of your inventory management system</p>
+        </div>
+        <div class="page-actions">
+            <span class="current-time" id="currentTime"></span>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon bg-primary">
+                    <i class='bx bx-package'></i>
+                </div>
+                <div class="stats-info">
+                    <h3>@Model.TotalEquipment</h3>
+                    <p>Total Equipment</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon bg-success">
+                    <i class='bx bx-check-circle'></i>
+                </div>
+                <div class="stats-info">
+                    <h3>@Model.AvailableEquipment</h3>
+                    <p>Available</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon bg-warning">
+                    <i class='bx bx-time'></i>
+                </div>
+                <div class="stats-info">
+                    <h3>@Model.BorrowedEquipment</h3>
+                    <p>Borrowed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon bg-info">
+                    <i class='bx bx-user'></i>
+                </div>
+                <div class="stats-info">
+                    <h3>@Model.TotalStaff</h3>
+                    <p>Total Staff</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Notifications Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="quick-actions">
+                        <a href="@Url.Action("AddEquipment", "Admin")" class="quick-action-btn">
+                            <i class='bx bx-plus-circle'></i>
+                            <span>Add Equipment</span>
+                        </a>
+                        <a href="@Url.Action("BorrowingRequests", "Admin")" class="quick-action-btn">
+                            <i class='bx bx-clipboard'></i>
+                            <span>View Requests</span>
+                            @if (Model.PendingRequests > 0)
+                            {
+                                <span class="badge bg-danger">@Model.PendingRequests</span>
+                            }
+                        </a>
+                        <a href="@Url.Action("PendingRegistrations", "Admin")" class="quick-action-btn">
+                            <i class='bx bx-user-check'></i>
+                            <span>Pending Users</span>
+                            @if (Model.PendingRegistrations > 0)
+                            {
+                                <span class="badge bg-warning">@Model.PendingRegistrations</span>
+                            }
+                        </a>
+                        <a href="@Url.Action("Reports", "Admin")" class="quick-action-btn">
+                            <i class='bx bx-bar-chart'></i>
+                            <span>Generate Reports</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <!-- System Status -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">System Status</h5>
+                </div>
+                <div class="card-body">
+                    
+                    <div class="status-item">
+                        <div class="status-dot bg-warning"></div>
+                        <span>@Model.PendingRequests Pending Requests</span>
+                    </div>
+                    @if (Model.PendingRegistrations > 0)
+                    {
+                        <div class="status-item">
+                            <div class="status-dot bg-info"></div>
+                            <span>@Model.PendingRegistrations New Registrations</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equipment Overview Chart -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Equipment Status Overview</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Enhanced pie chart for role distribution -->
+                    <div class="col-12 d-flex flex-column justify-content-center">
+                        <div id="equipmentChart" style="max-height: 450px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Equipment Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="summary-item">
+                        <div class="summary-label">Available Equipment</div>
+                        <div class="summary-value text-success">@Model.AvailableEquipment</div>
+                        <div class="summary-percentage">
+                            @{
+                                var availablePercentage = Model.TotalEquipment > 0 ? Math.Round((double)Model.AvailableEquipment / Model.TotalEquipment * 100, 1) : 0;
+                            }
+                            @availablePercentage% of total
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Currently Borrowed</div>
+                        <div class="summary-value text-warning">@Model.BorrowedEquipment</div>
+                        <div class="summary-percentage">
+                            @{
+                                var borrowedPercentage = Model.TotalEquipment > 0 ? Math.Round((double)Model.BorrowedEquipment / Model.TotalEquipment * 100, 1) : 0;
+                            }
+                            @borrowedPercentage% of total
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Utilization Rate</div>
+                        <div class="summary-value text-info">@borrowedPercentage%</div>
+                        <div class="summary-percentage">Equipment in use</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-container {
+        padding: 20px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .page-title h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .current-time {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        transition: transform 0.2s;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+    }
+
+    .stats-icon i {
+        font-size: 24px;
+        color: white;
+    }
+
+    .stats-info h3 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #2c3e50;
+    }
+
+    .stats-info p {
+        color: #6c757d;
+        margin: 0;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+
+    .bg-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .bg-success { background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); }
+    .bg-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .bg-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: none;
+    }
+
+    .card-header {
+        background: transparent;
+        border-bottom: 1px solid #eee;
+        padding: 20px 25px;
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .quick-action-btn {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #495057;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .quick-action-btn:hover {
+        background: #e9ecef;
+        color: #495057;
+        transform: translateY(-1px);
+    }
+
+    .quick-action-btn i {
+        font-size: 20px;
+        margin-right: 10px;
+        color: #667eea;
+    }
+
+    .quick-action-btn .badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        font-size: 0.7rem;
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .summary-item {
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+
+    .summary-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+
+    .summary-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 3px;
+    }
+
+    .summary-percentage {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    .highcharts-background {
+        fill: transparent !important;
+    }
+
+    .highcharts-button-box {
+        fill: transparent !important;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        updateTime();
+        setInterval(updateTime, 60000); // Update every minute
+
+        // Equipment Status Chart
+        Highcharts.chart('equipmentChart', {
+            chart: {
+                type: 'pie',
+                backgroundColor: 'transparent'
+            },
+            title: {
+                text: null
+            },
+            tooltip: {
+                pointFormat: '{series.name}: <b>{point.y}</b> ({point.percentage:.1f}%)',
+                shared: true,
+                useHTML: true,
+                style: {
+                    color: '#FFFFFF', // Change this to a color that contrasts with the background
+                    fontSize: '12px' // Optional: adjust font size
+                }
+            },
+            accessibility: {
+                point: {
+                    valueSuffix: '%'
+                }
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                    },
+                    showInLegend: true
+                }
+            },
+            credits: {
+                enabled: false
+            },
+            series: [{
+                name: 'Equipment',
+                colorByPoint: true,
+                data: [{
+                    name: 'Available',
+                    y: @Model.AvailableEquipment
+                }, {
+                    name: 'Borrowed',
+                    y: @Model.BorrowedEquipment
+                }, {
+                    name: 'Maintenance',
+                    y: 0 // You can add this to your model if needed
+                }]
+            }]
+        });
+    </script>
+}

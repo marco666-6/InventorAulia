@@ -1,0 +1,475 @@
+﻿@model List<Invenion.Models.BorrowingRequest>
+@{
+    ViewData["Title"] = "Borrowing Requests";
+}
+
+<div class="page-header">
+    <div class="page-title">
+        <h1>Borrowing Requests</h1>
+        <p class="text-muted">Manage equipment borrowing requests</p>
+    </div>
+    <div class="page-actions">
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class='bx bx-filter'></i> Filter Status
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="filterTable('all')">All Requests</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterTable('Pending')">Pending</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterTable('Approved')">Approved</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterTable('Rejected')">Rejected</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterTable('Borrowed')">Borrowed</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterTable('Returned')">Returned</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">All Borrowing Requests</h5>
+        <span class="badge bg-info">@Model.Count Total</span>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="requestsTable">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Requester</th>
+                            <th>Equipment</th>
+                            <th>Request Date</th>
+                            <th>Period</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model)
+                        {
+                            <tr data-status="@request.Status">
+                                <td>
+                                    <strong>#@request.RequestID</strong>
+                                </td>
+                                <td>
+                                    <div class="user-info">
+                                        <strong>@request.RequesterName</strong>
+                                        @if (!string.IsNullOrEmpty(request.Department))
+                                        {
+                                            <small class="text-muted d-block">@request.Department</small>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="equipment-info">
+                                        <strong>@request.EquipmentCode</strong>
+                                        <small class="text-muted d-block">@request.EquipmentName</small>
+                                        @if (!string.IsNullOrEmpty(request.Brand))
+                                        {
+                                            <small class="text-muted">@request.Brand @request.Model</small>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <small>@request.RequestDate.ToString("MMM dd, yyyy")</small>
+                                </td>
+                                <td>
+                                    <div class="date-range">
+                                        <small>
+                                            @request.RequestedStartDate.ToString("MMM dd") - 
+                                            @request.RequestedEndDate.ToString("MMM dd, yyyy")
+                                        </small>
+                                        <small class="text-muted d-block">
+                                            (@((request.RequestedEndDate - request.RequestedStartDate).Days + 1) days)
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    @switch (request.Status)
+                                    {
+                                        case "Pending":
+                                            <span class="badge bg-warning">Pending</span>
+                                            break;
+                                        case "Approved":
+                                            <span class="badge bg-success">Approved</span>
+                                            break;
+                                        case "Rejected":
+                                            <span class="badge bg-danger">Rejected</span>
+                                            break;
+                                        case "Borrowed":
+                                            <span class="badge bg-info">Borrowed</span>
+                                            break;
+                                        case "Returned":
+                                            <span class="badge bg-secondary">Returned</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-light text-dark">@request.Status</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="viewDetails(@request.RequestID, '@request.Purpose', '@request.RequesterName', '@request.EquipmentName', '@request.RequestedStartDate.ToString("yyyy-MM-dd")', '@request.RequestedEndDate.ToString("yyyy-MM-dd")', '@request.Status', '@(request.RejectionReason ?? "")', '@(request.ReturnCondition ?? "")')">
+                                            <i class='bx bx-eye'></i>
+                                        </button>
+                                        
+                                        @if (request.Status == "Pending")
+                                        {
+                                            <button class="btn btn-outline-success" onclick="approveRequest(@request.RequestID)">
+                                                <i class='bx bx-check'></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger" onclick="rejectRequest(@request.RequestID)">
+                                                <i class='bx bx-x'></i>
+                                            </button>
+                                        }
+                                        else if (request.Status == "Approved" || request.Status == "Borrowed")
+                                        {
+                                            <button class="btn btn-outline-info" onclick="returnEquipment(@request.RequestID)">
+                                                <i class='bx bx-undo'></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class='bx bx-clipboard'></i>
+                <h4>No Borrowing Requests</h4>
+                <p>There are no borrowing requests to display.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .page-title h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: none;
+    }
+
+    .card-header {
+        background: transparent;
+        border-bottom: 1px solid #eee;
+        padding: 20px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-body {
+        padding: 0;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        background: #f8f9fa;
+        border-top: none;
+        font-weight: 600;
+        color: #2c3e50;
+        padding: 15px;
+    }
+
+    .table td {
+        padding: 15px;
+        vertical-align: middle;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .user-info, .equipment-info, .date-range {
+        line-height: 1.4;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+    }
+
+    .btn-group-sm .btn {
+        padding: 0.375rem 0.5rem;
+        border-radius: 6px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h4 {
+        margin-bottom: 10px;
+        color: #495057;
+    }
+
+    .btn {
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function filterTable(status) {
+            const rows = document.querySelectorAll('#requestsTable tbody tr');
+            rows.forEach(row => {
+                if (status === 'all' || row.dataset.status === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function viewDetails(requestId, purpose, requester, equipment, startDate, endDate, status, rejectionReason, returnCondition) {
+            let htmlContent = `
+                <div class="text-start">
+                    <p><strong>Requester:</strong> ${requester}</p>
+                    <p><strong>Equipment:</strong> ${equipment}</p>
+                    <p><strong>Period:</strong> ${startDate} to ${endDate}</p>
+                    <p><strong>Purpose:</strong> ${purpose}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-info">${status}</span></p>
+            `;
+            
+            if (rejectionReason) {
+                htmlContent += `<p><strong>Rejection Reason:</strong> ${rejectionReason}</p>`;
+            }
+            
+            if (returnCondition) {
+                htmlContent += `<p><strong>Return Condition:</strong> ${returnCondition}</p>`;
+            }
+            
+            htmlContent += '</div>';
+            
+            Swal.fire({
+                title: `Request #${requestId} Details`,
+                html: htmlContent,
+                icon: 'info',
+                confirmButtonColor: '#667eea',
+                width: '600px'
+            });
+        }
+
+        function approveRequest(requestId) {
+            Swal.fire({
+                title: 'Approve Request?',
+                text: 'Are you sure you want to approve this borrowing request?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, approve it!',
+                input: 'textarea',
+                inputPlaceholder: 'Add notes (optional)...',
+                inputAttributes: {
+                    'aria-label': 'Notes'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'post';
+                    form.action = '@Url.Action("ApproveBorrowingRequest", "Admin")';
+                    
+                    const requestIdInput = document.createElement('input');
+                    requestIdInput.type = 'hidden';
+                    requestIdInput.name = 'requestId';
+                    requestIdInput.value = requestId;
+                    
+                    const notesInput = document.createElement('input');
+                    notesInput.type = 'hidden';
+                    notesInput.name = 'notes';
+                    notesInput.value = result.value || '';
+                    
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
+                    
+                    form.appendChild(requestIdInput);
+                    form.appendChild(notesInput);
+                    form.appendChild(tokenInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        function rejectRequest(requestId) {
+            Swal.fire({
+                title: 'Reject Request?',
+                text: 'Please provide a reason for rejection:',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Reject Request',
+                input: 'textarea',
+                inputPlaceholder: 'Enter rejection reason...',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'You need to provide a rejection reason!'
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'post';
+                    form.action = '@Url.Action("RejectBorrowingRequest", "Admin")';
+                    
+                    const requestIdInput = document.createElement('input');
+                    requestIdInput.type = 'hidden';
+                    requestIdInput.name = 'requestId';
+                    requestIdInput.value = requestId;
+                    
+                    const reasonInput = document.createElement('input');
+                    reasonInput.type = 'hidden';
+                    reasonInput.name = 'rejectionReason';
+                    reasonInput.value = result.value;
+                    
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
+                    
+                    form.appendChild(requestIdInput);
+                    form.appendChild(reasonInput);
+                    form.appendChild(tokenInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        function returnEquipment(requestId) {
+            Swal.fire({
+                title: 'Return Equipment?',
+                text: 'Please specify the return condition:',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#17a2b8',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Process Return',
+                input: 'select',
+                inputOptions: {
+                    'Good': 'Good Condition',
+                    'Fair': 'Fair Condition',
+                    'Damaged': 'Damaged',
+                    'Lost': 'Lost'
+                },
+                inputPlaceholder: 'Select condition',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'You need to select the return condition!'
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Additional Notes',
+                        input: 'textarea',
+                        inputPlaceholder: 'Add any additional notes (optional)...',
+                        showCancelButton: true,
+                        confirmButtonText: 'Complete Return'
+                    }).then((notesResult) => {
+                        if (notesResult.isConfirmed) {
+                            const form = document.createElement('form');
+                            form.method = 'post';
+                            form.action = '@Url.Action("ReturnEquipment", "Admin")';
+                            
+                            const requestIdInput = document.createElement('input');
+                            requestIdInput.type = 'hidden';
+                            requestIdInput.name = 'requestId';
+                            requestIdInput.value = requestId;
+                            
+                            const conditionInput = document.createElement('input');
+                            conditionInput.type = 'hidden';
+                            conditionInput.name = 'returnCondition';
+                            conditionInput.value = result.value;
+                            
+                            const notesInput = document.createElement('input');
+                            notesInput.type = 'hidden';
+                            notesInput.name = 'notes';
+                            notesInput.value = notesResult.value || '';
+                            
+                            const tokenInput = document.createElement('input');
+                            tokenInput.type = 'hidden';
+                            tokenInput.name = '__RequestVerificationToken';
+                            tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
+                            
+                            form.appendChild(requestIdInput);
+                            form.appendChild(conditionInput);
+                            form.appendChild(notesInput);
+                            form.appendChild(tokenInput);
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
+                    });
+                }
+            });
+        }
+
+        // Show success/error messages
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+            Swal.fire({
+                title: 'Success!',
+                text: '@TempData["SuccessMessage"]',
+                icon: 'success',
+                confirmButtonColor: '#667eea'
+            });
+            </text>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+            Swal.fire({
+                title: 'Error!',
+                text: '@TempData["ErrorMessage"]',
+                icon: 'error',
+                confirmButtonColor: '#667eea'
+            });
+            </text>
+        }
+    </script>
+}

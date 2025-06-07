@@ -1,0 +1,293 @@
+﻿@model Invenion.Models.ViewModels.RegisterViewModel
+@{
+    Layout = "";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invenion - Register</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    <!-- Third-party CSS -->
+    <link rel="stylesheet" href="~/lib/sweetalert2/dist/sweetalert2.min.css" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card register-card">
+            <!-- Header -->
+            <div class="login-header">
+                <div class="logo-container">
+                    <i class='bx bx-devices text-primary'></i>
+                    <h2>Invenion</h2>
+                </div>
+                <p class="login-subtitle">Create Your Account</p>
+            </div>
+
+            <!-- Registration Form -->
+            <form asp-action="Register" method="post" class="needs-validation" novalidate>
+                @Html.AntiForgeryToken()
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class='bx bx-user'></i>
+                                </span>
+                                <input asp-for="Username" 
+                                       class="form-control" 
+                                       placeholder="Username" 
+                                       required 
+                                       autocomplete="username" />
+                            </div>
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class='bx bx-envelope'></i>
+                                </span>
+                                <input asp-for="Email" 
+                                       type="email" 
+                                       class="form-control" 
+                                       placeholder="Email" 
+                                       required 
+                                       autocomplete="email" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class='bx bx-id-card'></i>
+                        </span>
+                        <input asp-for="FullName" 
+                               class="form-control" 
+                               placeholder="Full Name" 
+                               required 
+                               autocomplete="name" />
+                    </div>
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class='bx bx-buildings'></i>
+                        </span>
+                        <select asp-for="Department" class="form-select" required>
+                            <option value="">Select Department</option>
+                            <option value="IT">IT Department</option>
+                            <option value="HR">Human Resources</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Operations">Operations</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Support">Support</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <span asp-validation-for="Department" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class='bx bx-lock-alt'></i>
+                                </span>
+                                <input asp-for="Password" 
+                                       type="password" 
+                                       class="form-control" 
+                                       placeholder="Password" 
+                                       required 
+                                       minlength="6"
+                                       autocomplete="new-password" />
+                                <button type="button" class="btn btn-outline-secondary password-toggle" tabindex="-1">
+                                    <i class='bx bx-hide'></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class='bx bx-lock-alt'></i>
+                                </span>
+                                <input asp-for="ConfirmPassword" 
+                                       type="password" 
+                                       class="form-control" 
+                                       placeholder="Confirm Password" 
+                                       required 
+                                       minlength="6"
+                                       autocomplete="new-password" />
+                                <button type="button" class="btn btn-outline-secondary password-toggle" tabindex="-1">
+                                    <i class='bx bx-hide'></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                        <label class="form-check-label" for="agreeTerms">
+                            I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-login">
+                    <i class='bx bx-user-plus'></i>
+                    Create Account
+                </button>
+
+                <div class="login-footer">
+                    <p>Already have an account? 
+                        <a href="@Url.Action("Index")" class="register-link">Sign in here</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- Background Animation -->
+        <div class="background-animation">
+            <div class="floating-icon" style="--delay: 0s;">
+                <i class='bx bx-laptop'></i>
+            </div>
+            <div class="floating-icon" style="--delay: 2s;">
+                <i class='bx bx-mobile-alt'></i>
+            </div>
+            <div class="floating-icon" style="--delay: 4s;">
+                <i class='bx bx-desktop'></i>
+            </div>
+            <div class="floating-icon" style="--delay: 6s;">
+                <i class='bx bx-printer'></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms Modal -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Invenion Device Management System - Terms of Use</h6>
+                    <p>By creating an account, you agree to:</p>
+                    <ul>
+                        <li>Use the system responsibly and only for authorized purposes</li>
+                        <li>Keep your login credentials secure and confidential</li>
+                        <li>Return borrowed devices in good condition and on time</li>
+                        <li>Report any issues or damages immediately</li>
+                        <li>Comply with company policies regarding device usage</li>
+                        <li>Allow administrators to monitor device usage for security purposes</li>
+                    </ul>
+                    <p><strong>Note:</strong> Your account requires admin approval before activation.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap and jQuery Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Third-party JS -->
+    <script src="~/lib/sweetalert2/dist/sweetalert2.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Password toggle functionality
+            $('.password-toggle').click(function() {
+                const passwordInput = $(this).siblings('input[type="password"], input[type="text"]');
+                const icon = $(this).find('i');
+                
+                if (passwordInput.attr('type') === 'password') {
+                    passwordInput.attr('type', 'text');
+                    icon.removeClass('bx-hide').addClass('bx-show');
+                } else {
+                    passwordInput.attr('type', 'password');
+                    icon.removeClass('bx-show').addClass('bx-hide');
+                }
+            });
+
+            // Password confirmation validation
+            $('input[name="ConfirmPassword"]').on('input', function() {
+                const password = $('input[name="Password"]').val();
+                const confirmPassword = $(this).val();
+                
+                if (password !== confirmPassword) {
+                    this.setCustomValidity('Passwords do not match');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+
+            // Form validation
+            $('.needs-validation').on('submit', function(e) {
+                if (!this.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                $(this).addClass('was-validated');
+            });
+
+            // Show success/error messages
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Registration Successful!',
+                    text: '@TempData["SuccessMessage"]',
+                    timer: 4000,
+                    showConfirmButton: false
+                });
+                </text>
+            }
+
+            // Show validation errors
+            @if (!ViewData.ModelState.IsValid)
+            {
+                var errors = ViewData.ModelState.Where(x => x.Value.Errors.Count > 0)
+                    .Select(x => x.Value.Errors.First().ErrorMessage).ToList();
+                if (errors.Any())
+                {
+                    <text>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Registration Failed',
+                        html: '@string.Join("<br>", errors)',
+                        timer: 4000,
+                        showConfirmButton: false
+                    });
+                    </text>
+                }
+            }
+        });
+    </script>
+</body>
+</html>

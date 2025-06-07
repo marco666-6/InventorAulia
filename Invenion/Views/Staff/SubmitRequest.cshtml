@@ -1,0 +1,361 @@
+﻿@model Invenion.Models.BorrowingRequest
+@{
+    ViewData["Title"] = "Submit Equipment Request";
+    Layout = "~/Views/Shared/_LayoutStaff.cshtml";
+}
+
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h1><i class='bx bx-plus-circle'></i> Submit Equipment Request</h1>
+            <p class="text-muted">Request equipment for your project or work needs</p>
+        </div>
+        <div class="page-actions">
+            <a href="@Url.Action("Equipment", "Staff")" class="btn btn-outline-primary">
+                <i class='bx bx-arrow-back'></i> Browse Equipment
+            </a>
+        </div>
+    </div>
+
+    <!-- Request Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Equipment Request Form</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="SubmitRequest" method="post" id="requestForm">
+                        @Html.AntiForgeryToken()
+                        
+                        <!-- Equipment Selection -->
+                        <div class="form-group mb-4">
+                            <label asp-for="EquipmentID" class="form-label required">Equipment</label>
+                            <select asp-for="EquipmentID" class="form-select" id="equipmentSelect" required>
+                                <option value="">-- Select Equipment --</option>
+                                @if(ViewBag.AvailableEquipment != null)
+                                {
+                                    @foreach(var equipment in (List<Invenion.Models.Equipment>)ViewBag.AvailableEquipment)
+                                    {
+                                        <option value="@equipment.EquipmentID" 
+                                                data-code="@equipment.EquipmentCode"
+                                                data-brand="@equipment.Brand"
+                                                data-model="@equipment.Model"
+                                                data-category="@equipment.CategoryName"
+                                                selected="@(Model.EquipmentID == equipment.EquipmentID)">
+                                            @equipment.EquipmentCode - @equipment.EquipmentName
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="EquipmentID" class="text-danger"></span>
+                        </div>
+
+                        <!-- Equipment Details Display -->
+                        <div id="equipmentDetails" class="equipment-details mb-4" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <label>Equipment Code:</label>
+                                        <span id="detailCode">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <label>Category:</label>
+                                        <span id="detailCategory">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <label>Brand:</label>
+                                        <span id="detailBrand">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <label>Model:</label>
+                                        <span id="detailModel">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date Range -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label asp-for="RequestedStartDate" class="form-label required">Start Date</label>
+                                    <input asp-for="RequestedStartDate" type="date" class="form-control" required 
+                                           min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                    <span asp-validation-for="RequestedStartDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label asp-for="RequestedEndDate" class="form-label required">End Date</label>
+                                    <input asp-for="RequestedEndDate" type="date" class="form-control" required />
+                                    <span asp-validation-for="RequestedEndDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Purpose -->
+                        <div class="form-group mb-4">
+                            <label asp-for="Purpose" class="form-label required">Purpose of Request</label>
+                            <textarea asp-for="Purpose" class="form-control" rows="4" required 
+                                      placeholder="Please describe the purpose and how you intend to use this equipment..."></textarea>
+                            <span asp-validation-for="Purpose" class="text-danger"></span>
+                            <div class="form-text">Provide detailed information about your intended use of the equipment.</div>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                I agree to the <strong>Terms and Conditions</strong> for equipment borrowing
+                            </label>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class='bx bx-paper-plane'></i> Submit Request
+                            </button>
+                            <a href="@Url.Action("Equipment", "Staff")" class="btn btn-secondary">
+                                <i class='bx bx-x'></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Guidelines Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0"><i class='bx bx-info-circle'></i> Request Guidelines</h6>
+                </div>
+                <div class="card-body">
+                    <div class="guidelines-list">
+                        <div class="guideline-item">
+                            <i class='bx bx-check-circle text-success'></i>
+                            <span>Submit requests at least 24 hours in advance</span>
+                        </div>
+                        <div class="guideline-item">
+                            <i class='bx bx-check-circle text-success'></i>
+                            <span>Provide detailed purpose and usage information</span>
+                        </div>
+                        <div class="guideline-item">
+                            <i class='bx bx-check-circle text-success'></i>
+                            <span>Return equipment on time and in good condition</span>
+                        </div>
+                        <div class="guideline-item">
+                            <i class='bx bx-check-circle text-success'></i>
+                            <span>Report any damage immediately upon return</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-container {
+        padding: 20px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+    }
+
+    .page-title h1 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .page-title h1 i {
+        color: #667eea;
+        margin-right: 8px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .card-header {
+        background: transparent;
+        border-bottom: 1px solid #eee;
+        padding: 20px 25px;
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: #dc3545;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 12px 15px;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .equipment-details {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        border-left: 4px solid #667eea;
+    }
+
+    .detail-item {
+        margin-bottom: 10px;
+    }
+
+    .detail-item label {
+        font-weight: 600;
+        color: #6c757d;
+        margin-right: 8px;
+        font-size: 0.85rem;
+    }
+
+    .detail-item span {
+        color: #495057;
+        font-weight: 500;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .guidelines-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .guideline-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+    }
+
+    .guideline-item i {
+        font-size: 16px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 for better dropdown experience
+            $('#equipmentSelect').select2({
+                placeholder: '-- Select Equipment --',
+                allowClear: true
+            });
+
+            // Show equipment details when selected
+            $('#equipmentSelect').change(function() {
+                const selectedOption = $(this).find('option:selected');
+                
+                if (selectedOption.val()) {
+                    $('#detailCode').text(selectedOption.data('code') || '-');
+                    $('#detailBrand').text(selectedOption.data('brand') || '-');
+                    $('#detailModel').text(selectedOption.data('model') || '-');
+                    $('#detailCategory').text(selectedOption.data('category') || '-');
+                    $('#equipmentDetails').fadeIn();
+                } else {
+                    $('#equipmentDetails').fadeOut();
+                }
+            });
+
+            // Trigger change event if equipment is pre-selected
+            if ($('#equipmentSelect').val()) {
+                $('#equipmentSelect').trigger('change');
+            }
+
+            // Update end date minimum when start date changes
+            $('input[name="RequestedStartDate"]').change(function() {
+                const startDate = $(this).val();
+                if (startDate) {
+                    const nextDay = new Date(startDate);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    const minEndDate = nextDay.toISOString().split('T')[0];
+                    $('input[name="RequestedEndDate"]').attr('min', minEndDate);
+                }
+            });
+
+            // Form submission with SweetAlert confirmation
+            $('#requestForm').submit(function(e) {
+                e.preventDefault();
+                
+                if (!$('#agreeTerms').is(':checked')) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Agreement Required',
+                        text: 'Please agree to the Terms and Conditions before submitting your request.',
+                        confirmButtonColor: '#667eea'
+                    });
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Submit Request?',
+                    text: 'Are you sure you want to submit this borrowing request?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#667eea',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, Submit Request',
+                    cancelButtonText: 'Review Again'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading state
+                        $('#submitBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Submitting...');
+                        
+                        // Submit the form
+                        this.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}
