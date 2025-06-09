@@ -48,14 +48,14 @@ namespace Invenion.Controllers
             try
             {
                 DashboardStats stats = new DashboardStats();
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand("sp_GetDashboardStats", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         connection.Open();
-                        
+
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             if (reader.Read())
@@ -89,14 +89,14 @@ namespace Invenion.Controllers
             try
             {
                 List<Equipment> equipmentList = new List<Equipment>();
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand("sp_GetAllEquipment", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         connection.Open();
-                        
+
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -218,7 +218,7 @@ namespace Invenion.Controllers
             try
             {
                 Equipment equipment = null;
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand(
@@ -228,7 +228,7 @@ namespace Invenion.Controllers
                     {
                         command.Parameters.AddWithValue("@EquipmentID", id);
                         connection.Open();
-                        
+
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             if (reader.Read())
@@ -326,14 +326,14 @@ namespace Invenion.Controllers
             try
             {
                 List<BorrowingRequest> requests = new List<BorrowingRequest>();
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand("sp_GetAllBorrowingRequests", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         connection.Open();
-                        
+
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -383,7 +383,7 @@ namespace Invenion.Controllers
             try
             {
                 int adminUserId = Convert.ToInt32(HttpContext.Session.GetString("UserID"));
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand("sp_ApproveBorrowingRequest", connection))
@@ -424,7 +424,7 @@ namespace Invenion.Controllers
                 }
 
                 int adminUserId = Convert.ToInt32(HttpContext.Session.GetString("UserID"));
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand("sp_RejectBorrowingRequest", connection))
@@ -497,11 +497,11 @@ namespace Invenion.Controllers
             try
             {
                 List<User> users = new List<User>();
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand(
-                        "SELECT UserID, Username, Email, FullName, Department, Role, IsActive, IsApproved, CreatedDate FROM Users ORDER BY CreatedDate DESC", 
+                        "SELECT UserID, Username, Email, FullName, Department, Role, IsActive, IsApproved, CreatedDate FROM Users ORDER BY CreatedDate DESC",
                         connection))
                     {
                         connection.Open();
@@ -544,14 +544,14 @@ namespace Invenion.Controllers
             try
             {
                 List<User> pendingUsers = new List<User>();
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand("sp_GetPendingRegistrations", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         connection.Open();
-                        
+
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -589,7 +589,7 @@ namespace Invenion.Controllers
             try
             {
                 int adminUserId = Convert.ToInt32(HttpContext.Session.GetString("UserID"));
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand("sp_ApproveUserRegistration", connection))
@@ -631,13 +631,13 @@ namespace Invenion.Controllers
             try
             {
                 List<BorrowingRequest> reportData = new List<BorrowingRequest>();
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand("sp_GetBorrowingReport", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
-                        
+
                         if (startDate.HasValue)
                             command.Parameters.AddWithValue("@StartDate", startDate.Value);
                         if (endDate.HasValue)
@@ -674,7 +674,7 @@ namespace Invenion.Controllers
 
                 ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
                 ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-                
+
                 return View(reportData);
             }
             catch (Exception ex)
@@ -690,14 +690,14 @@ namespace Invenion.Controllers
             try
             {
                 List<EquipmentCategory> categories = new List<EquipmentCategory>();
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand("sp_GetEquipmentCategories", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         connection.Open();
-                        
+
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -718,6 +718,178 @@ namespace Invenion.Controllers
             catch (Exception ex)
             {
                 ViewBag.Categories = new List<EquipmentCategory>();
+            }
+        }
+        
+        // GET: Get Categories for AJAX
+        [HttpGet]
+        public IActionResult GetCategories()
+        {
+            var authCheck = CheckAuth();
+            if (authCheck != null) return Json(new { success = false, message = "Unauthorized" });
+
+            try
+            {
+                List<EquipmentCategory> categories = new List<EquipmentCategory>();
+                
+                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
+                {
+                    using (SqlCommand command = new SqlCommand("sp_GetEquipmentCategories", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        connection.Open();
+                        
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                categories.Add(new EquipmentCategory
+                                {
+                                    CategoryID = Convert.ToInt32(reader["CategoryID"]),
+                                    CategoryName = reader["CategoryName"].ToString(),
+                                    Description = reader["Description"]?.ToString(),
+                                    IsActive = Convert.ToBoolean(reader["IsActive"]),
+                                    CreatedDate = Convert.ToDateTime(reader["CreatedDate"])
+                                });
+                            }
+                        }
+                    }
+                }
+
+                return Json(new { success = true, data = categories });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error loading categories." });
+            }
+        }
+
+        // POST: Add Category
+        [HttpPost]
+        public IActionResult AddCategory(string categoryName, string description)
+        {
+            var authCheck = CheckAuth();
+            if (authCheck != null) return Json(new { success = false, message = "Unauthorized" });
+
+            try
+            {
+                if (string.IsNullOrEmpty(categoryName))
+                {
+                    return Json(new { success = false, message = "Category name is required." });
+                }
+
+                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
+                {
+                    using (SqlCommand command = new SqlCommand("sp_AddEquipmentCategory", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@CategoryName", categoryName);
+                        command.Parameters.AddWithValue("@Description", description ?? (object)DBNull.Value);
+
+                        connection.Open();
+                        var result = command.ExecuteScalar();
+
+                        if (result != null)
+                        {
+                            return Json(new { success = true, message = "Category added successfully!", categoryId = Convert.ToInt32(result) });
+                        }
+                    }
+                }
+
+                return Json(new { success = false, message = "Failed to add category." });
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message.Contains("CategoryName"))
+                {
+                    return Json(new { success = false, message = "Category name already exists." });
+                }
+                return Json(new { success = false, message = "Error adding category." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred." });
+            }
+        }
+
+        // POST: Update Category
+        [HttpPost]
+        public IActionResult UpdateCategory(int categoryId, string categoryName, string description)
+        {
+            var authCheck = CheckAuth();
+            if (authCheck != null) return Json(new { success = false, message = "Unauthorized" });
+
+            try
+            {
+                if (string.IsNullOrEmpty(categoryName))
+                {
+                    return Json(new { success = false, message = "Category name is required." });
+                }
+
+                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
+                {
+                    using (SqlCommand command = new SqlCommand("sp_UpdateEquipmentCategory", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@CategoryID", categoryId);
+                        command.Parameters.AddWithValue("@CategoryName", categoryName);
+                        command.Parameters.AddWithValue("@Description", description ?? (object)DBNull.Value);
+
+                        connection.Open();
+                        command.ExecuteNonQuery();
+
+                        return Json(new { success = true, message = "Category updated successfully!" });
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message.Contains("CategoryName"))
+                {
+                    return Json(new { success = false, message = "Category name already exists." });
+                }
+                return Json(new { success = false, message = "Error updating category." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred." });
+            }
+        }
+
+        // POST: Delete Category
+        [HttpPost]
+        public IActionResult DeleteCategory(int categoryId)
+        {
+            var authCheck = CheckAuth();
+            if (authCheck != null) return Json(new { success = false, message = "Unauthorized" });
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
+                {
+                    using (SqlCommand command = new SqlCommand("sp_DeleteEquipmentCategory", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@CategoryID", categoryId);
+
+                        connection.Open();
+                        command.ExecuteNonQuery();
+
+                        return Json(new { success = true, message = "Category deleted successfully!" });
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message.Contains("REFERENCE"))
+                {
+                    return Json(new { success = false, message = "Cannot delete category as it is being used by equipment." });
+                }
+                return Json(new { success = false, message = "Error deleting category." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred." });
             }
         }
     }
