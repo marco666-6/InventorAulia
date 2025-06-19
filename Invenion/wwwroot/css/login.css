@@ -288,6 +288,13 @@ body {
     border-color: #28a745;
 }
 
+select:valid {
+    background-image: url('icon-url'); /* Add your check icon here */
+    background-repeat: no-repeat;
+    background-position: right center;
+}
+  
+
 .invalid-feedback {
     display: none;
     width: 100%;

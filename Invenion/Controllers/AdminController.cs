@@ -62,6 +62,7 @@ namespace Invenion.Controllers
                             {
                                 stats.TotalEquipment = Convert.ToInt32(reader["TotalEquipment"]);
                                 stats.AvailableEquipment = Convert.ToInt32(reader["AvailableEquipment"]);
+                                stats.MaintenancedEquipment = Convert.ToInt32(reader["MaintenancedEquipment"]);
                                 stats.BorrowedEquipment = Convert.ToInt32(reader["BorrowedEquipment"]);
                                 stats.PendingRequests = Convert.ToInt32(reader["PendingRequests"]);
                                 stats.TotalStaff = Convert.ToInt32(reader["TotalStaff"]);
@@ -126,6 +127,55 @@ namespace Invenion.Controllers
             {
                 TempData["ErrorMessage"] = "Error loading equipment data.";
                 return View(new List<Equipment>());
+            }
+        }
+
+        public IActionResult DELETE_EQUIPMENT(int id)
+        {
+            var authCheck = CheckAuth();
+            if (authCheck != null) return authCheck;
+
+            int rowsAffected0, rowsAffected1;
+
+            try
+            {
+                // DELETE EQUIOMENT HAPUS EQUIPMENT YES
+                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
+                {
+                    using (SqlCommand command = new SqlCommand("DELETE FROM BorrowingRequests WHERE EquipmentID = @id;", connection))
+                    {
+                        command.CommandType = CommandType.Text;
+                        command.Parameters.AddWithValue("@id", id); // Add parameter to prevent SQL injection
+                        connection.Open();
+
+                        rowsAffected0 = command.ExecuteNonQuery(); // Execute the command
+                        connection.Close();
+                    }
+
+                    using (SqlCommand command = new SqlCommand("DELETE FROM Equipment WHERE EquipmentID = @id;", connection))
+                    {
+                        command.CommandType = CommandType.Text;
+                        command.Parameters.AddWithValue("@id", id); // Add parameter to prevent SQL injection
+                        connection.Open();
+
+                        rowsAffected0 += command.ExecuteNonQuery(); // Execute the command
+                        connection.Close();
+                    }
+
+                    if (rowsAffected0 > 0)
+                    {
+                        return Json(new { success = true, message = "Equipment deleted successfully." });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "No equipment found with the given ID." });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error deleting equipment: " + ex.Message; // Log the exception message
+                return Json(new { success = false, message = "An error occurred while deleting the equipment." });
             }
         }
 
@@ -271,7 +321,7 @@ namespace Invenion.Controllers
         // POST: Edit Equipment
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult EditEquipment(Equipment model)
+        public IActionResult EditEquipment(Equipment item)
         {
             var authCheck = CheckAuth();
             if (authCheck != null) return authCheck;
@@ -281,7 +331,7 @@ namespace Invenion.Controllers
                 if (!ModelState.IsValid)
                 {
                     LoadCategories();
-                    return View(model);
+                    return View(item);
                 }
 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
@@ -289,17 +339,17 @@ namespace Invenion.Controllers
                     using (SqlCommand command = new SqlCommand("sp_UpdateEquipment", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
-                        command.Parameters.AddWithValue("@EquipmentID", model.EquipmentID);
-                        command.Parameters.AddWithValue("@EquipmentCode", model.EquipmentCode);
-                        command.Parameters.AddWithValue("@EquipmentName", model.EquipmentName);
-                        command.Parameters.AddWithValue("@CategoryID", model.CategoryID);
-                        command.Parameters.AddWithValue("@Brand", model.Brand ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@Model", model.Model ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@SerialNumber", model.SerialNumber ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@Description", model.Description ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@Status", model.Status);
-                        command.Parameters.AddWithValue("@PurchaseDate", model.PurchaseDate ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@WarrantyExpiry", model.WarrantyExpiry ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@EquipmentID", item.EquipmentID);
+                        command.Parameters.AddWithValue("@EquipmentCode", item.EquipmentCode);
+                        command.Parameters.AddWithValue("@EquipmentName", item.EquipmentName);
+                        command.Parameters.AddWithValue("@CategoryID", item.CategoryID);
+                        command.Parameters.AddWithValue("@Brand", item.Brand ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@Model", item.Model ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@SerialNumber", item.SerialNumber ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@Description", item.Description ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@Status", item.Status);
+                        command.Parameters.AddWithValue("@PurchaseDate", item.PurchaseDate ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@WarrantyExpiry", item.WarrantyExpiry ?? (object)DBNull.Value);
 
                         connection.Open();
                         command.ExecuteNonQuery();
@@ -313,7 +363,7 @@ namespace Invenion.Controllers
             {
                 ModelState.AddModelError("", "Error updating equipment. Please try again.");
                 LoadCategories();
-                return View(model);
+                return View(item);
             }
         }
 

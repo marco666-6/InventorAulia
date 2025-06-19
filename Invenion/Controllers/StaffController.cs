@@ -218,7 +218,7 @@ namespace Invenion.Controllers
 
             try
             {
-                // Validate dates
+                // validate dates
                 if (model.RequestedStartDate < DateTime.Today)
                 {
                     ModelState.AddModelError("RequestedStartDate", "Start date cannot be in the past.");

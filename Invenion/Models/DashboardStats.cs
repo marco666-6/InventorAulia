@@ -5,6 +5,7 @@ namespace Invenion.Models
     {
         public int TotalEquipment { get; set; }
         public int AvailableEquipment { get; set; }
+        public int MaintenancedEquipment { get; set; }
         public int BorrowedEquipment { get; set; }
         public int PendingRequests { get; set; }
         public int TotalStaff { get; set; }
