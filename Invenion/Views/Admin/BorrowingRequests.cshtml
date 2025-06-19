@@ -78,7 +78,7 @@
                                 <td>
                                     <div class="date-range">
                                         <small>
-                                            @request.RequestedStartDate.ToString("MMM dd") - 
+                                            @request.RequestedStartDate.ToString("MMM dd") -
                                             @request.RequestedEndDate.ToString("MMM dd, yyyy")
                                         </small>
                                         <small class="text-muted d-block">
@@ -114,7 +114,7 @@
                                         <button class="btn btn-outline-primary" onclick="viewDetails(@request.RequestID, '@request.Purpose', '@request.RequesterName', '@request.EquipmentName', '@request.RequestedStartDate.ToString("yyyy-MM-dd")', '@request.RequestedEndDate.ToString("yyyy-MM-dd")', '@request.Status', '@(request.RejectionReason ?? "")', '@(request.ReturnCondition ?? "")')">
                                             <i class='bx bx-eye'></i>
                                         </button>
-                                        
+
                                         @if (request.Status == "Pending")
                                         {
                                             <button class="btn btn-outline-success" onclick="approveRequest(@request.RequestID)">
@@ -188,22 +188,22 @@
         margin-bottom: 0;
     }
 
-    .table th {
-        background: #f8f9fa;
-        border-top: none;
-        font-weight: 600;
-        color: #2c3e50;
-        padding: 15px;
-    }
+        .table th {
+            background: #f8f9fa;
+            border-top: none;
+            font-weight: 600;
+            color: #2c3e50;
+            padding: 15px;
+        }
 
-    .table td {
-        padding: 15px;
-        vertical-align: middle;
-    }
+        .table td {
+            padding: 15px;
+            vertical-align: middle;
+        }
 
-    .table tbody tr:hover {
-        background-color: #f8f9fa;
-    }
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
 
     .user-info, .equipment-info, .date-range {
         line-height: 1.4;
@@ -225,16 +225,16 @@
         color: #6c757d;
     }
 
-    .empty-state i {
-        font-size: 4rem;
-        margin-bottom: 20px;
-        opacity: 0.5;
-    }
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
 
-    .empty-state h4 {
-        margin-bottom: 10px;
-        color: #495057;
-    }
+        .empty-state h4 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
 
     .btn {
         border-radius: 6px;
@@ -242,9 +242,19 @@
         transition: all 0.3s ease;
     }
 
-    .btn:hover {
-        transform: translateY(-1px);
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+    .badge.bg-info {
+        background-color: #003200 !important;
+        border-color: #003200 !important;
     }
+
+        .badge.bg-info:hover {
+            background-color: #001a00 !important;
+            border-color: #001a00 !important;
+        }
 </style>
 
 @section Scripts {
@@ -269,17 +279,17 @@
                     <p><strong>Purpose:</strong> ${purpose}</p>
                     <p><strong>Status:</strong> <span class="badge bg-info">${status}</span></p>
             `;
-            
+
             if (rejectionReason) {
                 htmlContent += `<p><strong>Rejection Reason:</strong> ${rejectionReason}</p>`;
             }
-            
+
             if (returnCondition) {
                 htmlContent += `<p><strong>Return Condition:</strong> ${returnCondition}</p>`;
             }
-            
+
             htmlContent += '</div>';
-            
+
             Swal.fire({
                 title: `Request #${requestId} Details`,
                 html: htmlContent,
@@ -308,22 +318,22 @@
                     const form = document.createElement('form');
                     form.method = 'post';
                     form.action = '@Url.Action("ApproveBorrowingRequest", "Admin")';
-                    
+
                     const requestIdInput = document.createElement('input');
                     requestIdInput.type = 'hidden';
                     requestIdInput.name = 'requestId';
                     requestIdInput.value = requestId;
-                    
+
                     const notesInput = document.createElement('input');
                     notesInput.type = 'hidden';
                     notesInput.name = 'notes';
                     notesInput.value = result.value || '';
-                    
+
                     const tokenInput = document.createElement('input');
                     tokenInput.type = 'hidden';
                     tokenInput.name = '__RequestVerificationToken';
                     tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
-                    
+
                     form.appendChild(requestIdInput);
                     form.appendChild(notesInput);
                     form.appendChild(tokenInput);
@@ -354,22 +364,22 @@
                     const form = document.createElement('form');
                     form.method = 'post';
                     form.action = '@Url.Action("RejectBorrowingRequest", "Admin")';
-                    
+
                     const requestIdInput = document.createElement('input');
                     requestIdInput.type = 'hidden';
                     requestIdInput.name = 'requestId';
                     requestIdInput.value = requestId;
-                    
+
                     const reasonInput = document.createElement('input');
                     reasonInput.type = 'hidden';
                     reasonInput.name = 'rejectionReason';
                     reasonInput.value = result.value;
-                    
+
                     const tokenInput = document.createElement('input');
                     tokenInput.type = 'hidden';
                     tokenInput.name = '__RequestVerificationToken';
                     tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
-                    
+
                     form.appendChild(requestIdInput);
                     form.appendChild(reasonInput);
                     form.appendChild(tokenInput);
@@ -414,27 +424,27 @@
                             const form = document.createElement('form');
                             form.method = 'post';
                             form.action = '@Url.Action("ReturnEquipment", "Admin")';
-                            
+
                             const requestIdInput = document.createElement('input');
                             requestIdInput.type = 'hidden';
                             requestIdInput.name = 'requestId';
                             requestIdInput.value = requestId;
-                            
+
                             const conditionInput = document.createElement('input');
                             conditionInput.type = 'hidden';
                             conditionInput.name = 'returnCondition';
                             conditionInput.value = result.value;
-                            
+
                             const notesInput = document.createElement('input');
                             notesInput.type = 'hidden';
                             notesInput.name = 'notes';
                             notesInput.value = notesResult.value || '';
-                            
+
                             const tokenInput = document.createElement('input');
                             tokenInput.type = 'hidden';
                             tokenInput.name = '__RequestVerificationToken';
                             tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
-                            
+
                             form.appendChild(requestIdInput);
                             form.appendChild(conditionInput);
                             form.appendChild(notesInput);
@@ -450,26 +460,26 @@
         // Show success/error messages
         @if (TempData["SuccessMessage"] != null)
         {
-            <text>
-            Swal.fire({
-                title: 'Success!',
-                text: '@TempData["SuccessMessage"]',
-                icon: 'success',
-                confirmButtonColor: '#667eea'
-            });
-            </text>
+                <text>
+                Swal.fire({
+                    title: 'Success!',
+                    text: '@TempData["SuccessMessage"]',
+                    icon: 'success',
+                    confirmButtonColor: '#667eea'
+                });
+                </text>
         }
 
         @if (TempData["ErrorMessage"] != null)
         {
-            <text>
-            Swal.fire({
-                title: 'Error!',
-                text: '@TempData["ErrorMessage"]',
-                icon: 'error',
-                confirmButtonColor: '#667eea'
-            });
-            </text>
+                <text>
+                Swal.fire({
+                    title: 'Error!',
+                    text: '@TempData["ErrorMessage"]',
+                    icon: 'error',
+                    confirmButtonColor: '#667eea'
+                });
+                </text>
         }
     </script>
 }

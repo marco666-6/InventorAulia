@@ -186,7 +186,7 @@
     .page-title h1 {
         font-size: 2rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: #003200;
         margin-bottom: 5px;
     }
 
@@ -206,9 +206,9 @@
         transition: transform 0.2s;
     }
 
-    .stats-card:hover {
-        transform: translateY(-2px);
-    }
+        .stats-card:hover {
+            transform: translateY(-2px);
+        }
 
     .stats-icon {
         width: 60px;
@@ -220,16 +220,16 @@
         margin-right: 20px;
     }
 
-    .stats-icon i {
-        font-size: 24px;
-        color: white;
-    }
+        .stats-icon i {
+            font-size: 24px;
+            color: white;
+        }
 
     .stats-info h3 {
         font-size: 1.8rem;
         font-weight: 700;
         margin-bottom: 5px;
-        color: #2c3e50;
+        color: #003200;
     }
 
     .stats-info p {
@@ -239,10 +239,21 @@
         font-size: 0.8rem;
     }
 
-    .bg-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .bg-success { background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); }
-    .bg-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    .bg-danger { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
+    .bg-primary {
+        background: linear-gradient(135deg, #006A4E 0%, #003200 100%);
+    }
+
+    .bg-success {
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    }
+
+    .bg-warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .bg-danger {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    }
 
     .card {
         background: white;
@@ -278,26 +289,26 @@
         transition: all 0.2s;
     }
 
-    .quick-action-btn:hover {
-        background: #e9ecef;
-        color: #495057;
-        transform: translateY(-1px);
-    }
+        .quick-action-btn:hover {
+            background: #e9ecef;
+            color: #495057;
+            transform: translateY(-1px);
+        }
 
-    .quick-action-btn i {
-        font-size: 20px;
-        margin-right: 10px;
-        color: #667eea;
-    }
+        .quick-action-btn i {
+            font-size: 20px;
+            margin-right: 10px;
+            color: #006A4E;
+        }
 
     .account-info .info-item {
         padding: 10px 0;
         border-bottom: 1px solid #eee;
     }
 
-    .account-info .info-item:last-child {
-        border-bottom: none;
-    }
+        .account-info .info-item:last-child {
+            border-bottom: none;
+        }
 
     .info-label {
         font-size: 0.9rem;
@@ -319,20 +330,33 @@
         border-radius: 8px;
     }
 
-    .tips-list .tip-item i {
-        color: #667eea;
-        margin-right: 10px;
-        margin-top: 2px;
-        font-size: 18px;
-    }
+        .tips-list .tip-item i {
+            color: #006A4E;
+            margin-right: 10px;
+            margin-top: 2px;
+            font-size: 18px;
+        }
 
-    .tips-list .tip-item:last-child {
-        margin-bottom: 0;
-    }
+        .tips-list .tip-item:last-child {
+            margin-bottom: 0;
+        }
 
     .highcharts-background {
         fill: transparent !important;
     }
+
+    /* Style untuk link hijau ketika tidak ada request */
+    .green-submit-link {
+        color: #003200 !important;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+        .green-submit-link:hover {
+            color: #003200 !important;
+            text-decoration: underline;
+        }
 </style>
 
 @section Scripts {
@@ -350,13 +374,13 @@
             });
             document.getElementById('currentTime').textContent = timeString;
         }
-        
+
         updateTime();
         setInterval(updateTime, 60000);
 
         // Request Status Chart
         const totalRequests = @ViewBag.Stats.ActiveRequests + @ViewBag.Stats.PendingRequests + @ViewBag.Stats.CompletedRequests + @ViewBag.Stats.RejectedRequests;
-        
+
         if (totalRequests > 0) {
             Highcharts.chart('requestStatusChart', {
                 chart: {
@@ -395,7 +419,7 @@
                     data: [{
                         name: 'Active',
                         y: @ViewBag.Stats.ActiveRequests,
-                        color: '#667eea'
+                        color: '#006A4E'
                     }, {
                         name: 'Pending',
                         y: @ViewBag.Stats.PendingRequests,
@@ -412,7 +436,12 @@
                 }]
             });
         } else {
-            document.getElementById('requestStatusChart').innerHTML = '<div class="text-center p-4"><p class="text-muted">No requests yet. <a href="@Url.Action("SubmitRequest", "Staff")">Submit your first request!</a></p></div>';
+            // Modifikasi bagian ini untuk menambahkan warna hijau pada link
+            document.getElementById('requestStatusChart').innerHTML =
+                '<div class="text-center p-4">' +
+                '<p class="text-muted">No requests yet. ' +
+                '<a href="@Url.Action("SubmitRequest", "Staff")" class="green-submit-link">Submit your first request!</a>' +
+                '</p></div>';
         }
     </script>
 }

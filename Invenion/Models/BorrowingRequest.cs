@@ -3,20 +3,22 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Invenion.Models
 {
+    //references ini untuk tahu berapa kali & dimana class ini dipanggil
     public class BorrowingRequest
     {
         public int RequestID { get; set; }
         
-        [Required]
+        [Required] //tidak boleh kosong
         public int UserID { get; set; }
         
+        //kalau tabel barang nya tidak diisi, bakal nampilin pesan error
         [Required(ErrorMessage = "Equipment selection is required")]
         public int EquipmentID { get; set; }
         
         public DateTime RequestDate { get; set; } = DateTime.Now;
         
         [Required(ErrorMessage = "Start date is required")]
-        [DataType(DataType.Date)]
+        [DataType(DataType.Date)] //hanya tanggal, tidak menjelaskan waktu
         public DateTime RequestedStartDate { get; set; }
         
         [Required(ErrorMessage = "End date is required")]
@@ -51,6 +53,7 @@ namespace Invenion.Models
         public DateTime? ModifiedDate { get; set; }
         
         // Navigation properties
+        //berelasi ke equipment
         public string? EquipmentCode { get; set; }
         public string? EquipmentName { get; set; }
         public string? Brand { get; set; }

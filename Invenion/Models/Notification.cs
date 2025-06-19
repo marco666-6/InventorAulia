@@ -12,3 +12,4 @@ namespace Invenion.Models
         public DateTime CreatedDate { get; set; } = DateTime.Now;
     }
 }
+//notifikasi yang dikirim ke user

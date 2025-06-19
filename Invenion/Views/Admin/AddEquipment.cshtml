@@ -25,7 +25,7 @@
         <div class="card-body">
             <form asp-action="AddEquipment" method="post" id="addEquipmentForm">
                 @Html.AntiForgeryToken()
-                
+
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
@@ -94,13 +94,6 @@
                             <label asp-for="PurchaseDate" class="form-label">Purchase Date</label>
                             <input asp-for="PurchaseDate" type="date" class="form-control" />
                             <span asp-validation-for="PurchaseDate" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group mb-3">
-                            <label asp-for="WarrantyExpiry" class="form-label">Warranty Expiry</label>
-                            <input asp-for="WarrantyExpiry" type="date" class="form-control" />
-                            <span asp-validation-for="WarrantyExpiry" class="text-danger"></span>
                         </div>
                     </div>
                 </div>
@@ -273,10 +266,10 @@
         transition: all 0.2s;
     }
 
-    .form-control:focus, .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
+        .form-control:focus, .form-select:focus {
+            border-color: #006A4E;
+            box-shadow: 0 0 0 0.2rem rgba(0, 106, 78, 0.25);
+        }
 
     .form-actions {
         display: flex;
@@ -295,9 +288,15 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #006A4E 0%, #003200 100%);
         border: none;
+        color: white;
     }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #00CC99 0%, #006A4E 100%);
+            color: white;
+        }
 
     .btn-secondary {
         background-color: #6c757d;
@@ -309,10 +308,10 @@
         border-color: #6c757d;
     }
 
-    .btn-outline-secondary:hover {
-        background-color: #6c757d;
-        border-color: #6c757d;
-    }
+        .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
 
     .text-danger {
         font-size: 0.875rem;
@@ -396,10 +395,10 @@
             // Form submission with SweetAlert
             $('#addEquipmentForm').on('submit', function(e) {
                 e.preventDefault();
-                
+
                 var isValid = true;
                 var requiredFields = ['EquipmentCode', 'EquipmentName', 'CategoryID'];
-                
+
                 requiredFields.forEach(function(fieldName) {
                     var field = $('[name="' + fieldName + '"]');
                     if (!field.val().trim()) {
@@ -416,7 +415,7 @@
                         text: 'Are you sure you want to add this equipment?',
                         icon: 'question',
                         showCancelButton: true,
-                        confirmButtonColor: '#667eea',
+                        confirmButtonColor: '#006A4E',
                         cancelButtonColor: '#6c757d',
                         confirmButtonText: 'Yes, add it!'
                     }).then((result) => {
@@ -428,7 +427,7 @@
                                     Swal.showLoading();
                                 }
                             });
-                            
+
                             this.submit();
                         }
                     });
@@ -437,7 +436,7 @@
                         title: 'Validation Error',
                         text: 'Please fill in all required fields.',
                         icon: 'error',
-                        confirmButtonColor: '#667eea'
+                        confirmButtonColor: '#006A4E'
                     });
                 }
             });
@@ -546,7 +545,7 @@
 
         function deleteCategory(categoryId) {
             const category = categoriesData.find(c => c.categoryID === categoryId);
-            
+
             Swal.fire({
                 title: 'Delete Category?',
                 text: `Are you sure you want to delete "${category.categoryName}"? This action cannot be undone.`,
@@ -579,11 +578,11 @@
                     const currentValue = select.val();
                     select.empty();
                     select.append('<option value="">Select Category</option>');
-                    
+
                     response.data.forEach(function(category) {
                         select.append(`<option value="${category.CategoryID}">${category.CategoryName}</option>`);
                     });
-                    
+
                     select.val(currentValue);
                 }
             });

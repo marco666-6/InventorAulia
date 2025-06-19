@@ -39,7 +39,7 @@
                             </div>
                         </div>
 
-                        <!-- Equipment Summary Report -->
+                        @* <!-- Equipment Summary Report -->
                         <div class="report-card" onclick="generateEquipmentReport()">
                             <div class="report-icon bg-success">
                                 <i class='bx bx-package'></i>
@@ -75,7 +75,7 @@
                             <div class="report-arrow">
                                 <i class='bx bx-chevron-right'></i>
                             </div>
-                        </div>
+                        </div> *@
                     </div>
                 </div>
             </div>
@@ -213,12 +213,12 @@
         border: 2px solid transparent;
     }
 
-    .report-card:hover {
-        background: #e9ecef;
-        border-color: #667eea;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
-    }
+        .report-card:hover {
+            background: #e9ecef;
+            border-color: #006A4E;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 106, 78, 0.1);
+        }
 
     .report-icon {
         width: 60px;
@@ -231,27 +231,27 @@
         flex-shrink: 0;
     }
 
-    .report-icon i {
-        font-size: 24px;
-        color: white;
-    }
+        .report-icon i {
+            font-size: 24px;
+            color: white;
+        }
 
     .report-info {
         flex: 1;
     }
 
-    .report-info h6 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 5px;
-    }
+        .report-info h6 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
 
-    .report-info p {
-        color: #6c757d;
-        margin-bottom: 10px;
-        font-size: 0.9rem;
-    }
+        .report-info p {
+            color: #6c757d;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
 
     .report-features {
         display: flex;
@@ -260,7 +260,7 @@
     }
 
     .feature-tag {
-        background: #667eea;
+        background: #006A4E;
         color: white;
         padding: 2px 8px;
         border-radius: 12px;
@@ -273,22 +273,30 @@
         color: #6c757d;
     }
 
-    .report-arrow i {
-        font-size: 20px;
+        .report-arrow i {
+            font-size: 20px;
+        }
+
+    .bg-primary {
+        background: linear-gradient(135deg, #003200 0%, #006A4E 100%);
     }
 
-    .bg-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .bg-success { background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); }
-    .bg-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .bg-success {
+        background: linear-gradient(135deg, #006A4E 0%, #00CC99 100%);
+    }
+
+    .bg-info {
+        background: linear-gradient(135deg, #00CC99 0%, #03C03C 100%);
+    }
 
     .quick-stat {
         padding: 15px 0;
         border-bottom: 1px solid #eee;
     }
 
-    .quick-stat:last-child {
-        border-bottom: none;
-    }
+        .quick-stat:last-child {
+            border-bottom: none;
+        }
 
     .stat-label {
         font-size: 0.9rem;
@@ -349,10 +357,10 @@
         transition: border-color 0.3s ease;
     }
 
-    .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
+        .form-control:focus {
+            border-color: #006A4E;
+            box-shadow: 0 0 0 0.2rem rgba(0, 106, 78, 0.25);
+        }
 
     .btn {
         border-radius: 8px;
@@ -362,23 +370,24 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #006A4E 0%, #00CC99 100%);
         border: none;
     }
 
-    .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 106, 78, 0.3);
+            background: linear-gradient(135deg, #003200 0%, #006A4E 100%);
+        }
 
     .btn-secondary {
         background: #6c757d;
         border: none;
     }
 
-    .btn-secondary:hover {
-        background: #5a6268;
-    }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
 </style>
 
 @section Scripts {
@@ -387,36 +396,6 @@
         function showBorrowingReportForm() {
             const modal = new bootstrap.Modal(document.getElementById('borrowingReportModal'));
             modal.show();
-        }
-
-        function generateEquipmentReport() {
-            Swal.fire({
-                title: 'Equipment Summary Report',
-                text: 'This feature will be available in the next update. For now, you can view equipment details in the Equipment section.',
-                icon: 'info',
-                confirmButtonText: 'Go to Equipment',
-                showCancelButton: true,
-                cancelButtonText: 'OK'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '@Url.Action("Equipment", "Admin")';
-                }
-            });
-        }
-
-        function generateUserReport() {
-            Swal.fire({
-                title: 'User Activity Report',
-                text: 'This feature will be available in the next update. For now, you can view user details in the Users section.',
-                icon: 'info',
-                confirmButtonText: 'Go to Users',
-                showCancelButton: true,
-                cancelButtonText: 'OK'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '@Url.Action("Users", "Admin")';
-                }
-            });
         }
 
         // Set default dates (last 30 days)

@@ -27,12 +27,12 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label for="startDate" class="form-label">Start Date</label>
-                        <input type="date" class="form-control" id="startDate" name="startDate" 
+                        <input type="date" class="form-control" id="startDate" name="startDate"
                                value="@ViewBag.StartDate" />
                     </div>
                     <div class="col-md-4">
                         <label for="endDate" class="form-label">End Date</label>
-                        <input type="date" class="form-control" id="endDate" name="endDate" 
+                        <input type="date" class="form-control" id="endDate" name="endDate"
                                value="@ViewBag.EndDate" />
                     </div>
                     <div class="col-md-4 d-flex align-items-end">
@@ -152,14 +152,14 @@
                                     <td>@request.RequestDate.ToString("MMM dd, yyyy")</td>
                                     <td>
                                         <small>
-                                            @request.RequestedStartDate.ToString("MMM dd") - 
+                                            @request.RequestedStartDate.ToString("MMM dd") -
                                             @request.RequestedEndDate.ToString("MMM dd, yyyy")
                                         </small>
                                         @if (request.ActualStartDate.HasValue && request.ActualEndDate.HasValue)
                                         {
                                             <br>
                                             <small class="text-success">
-                                                Actual: @request.ActualStartDate.Value.ToString("MMM dd") - 
+                                                Actual: @request.ActualStartDate.Value.ToString("MMM dd") -
                                                 @request.ActualEndDate.Value.ToString("MMM dd, yyyy")
                                             </small>
                                         }
@@ -248,10 +248,10 @@
         margin-bottom: 5px;
     }
 
-    .page-title h1 i {
-        margin-right: 10px;
-        color: #667eea;
-    }
+        .page-title h1 i {
+            margin-right: 10px;
+            color: #006A4E;
+        }
 
     .stats-card {
         background: white;
@@ -263,9 +263,9 @@
         transition: transform 0.2s;
     }
 
-    .stats-card:hover {
-        transform: translateY(-2px);
-    }
+        .stats-card:hover {
+            transform: translateY(-2px);
+        }
 
     .stats-icon {
         width: 60px;
@@ -277,10 +277,10 @@
         margin-right: 20px;
     }
 
-    .stats-icon i {
-        font-size: 24px;
-        color: white;
-    }
+        .stats-icon i {
+            font-size: 24px;
+            color: white;
+        }
 
     .stats-info h3 {
         font-size: 1.8rem;
@@ -295,10 +295,22 @@
         font-weight: 500;
     }
 
-    .bg-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .bg-success { background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); }
-    .bg-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    .bg-danger { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+    /* Your green color scheme */
+    .bg-primary {
+        background: linear-gradient(135deg, #006A4E 0%, #003200 100%);
+    }
+
+    .bg-success {
+        background: linear-gradient(135deg, #03C03C 0%, #00CC99 100%);
+    }
+
+    .bg-warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .bg-danger {
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    }
 
     .card {
         background: white;
@@ -319,7 +331,7 @@
 
     .card-title i {
         margin-right: 8px;
-        color: #667eea;
+        color: #006A4E;
     }
 
     .equipment-info strong {
@@ -369,13 +381,34 @@
         transition: all 0.2s;
     }
 
-    .btn:hover {
-        transform: translateY(-1px);
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn i {
+            margin-right: 5px;
+        }
+
+    /* Override Bootstrap primary colors to your green theme */
+    .btn-primary {
+        background: linear-gradient(135deg, #006A4E 0%, #003200 100%);
+        border-color: #006A4E;
     }
 
-    .btn i {
-        margin-right: 5px;
-    }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #003200 0%, #006A4E 100%);
+            border-color: #003200;
+        }
+
+        .btn-primary:focus, .btn-primary.focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 106, 78, 0.25);
+        }
+
+        .btn-primary:not(:disabled):not(.disabled):active,
+        .btn-primary:not(:disabled):not(.disabled).active {
+            background: #003200;
+            border-color: #003200;
+        }
 </style>
 
 @section Scripts {
@@ -384,13 +417,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             const startDate = document.getElementById('startDate');
             const endDate = document.getElementById('endDate');
-            
+
             if (!startDate.value) {
                 const lastMonth = new Date();
                 lastMonth.setMonth(lastMonth.getMonth() - 1);
                 startDate.value = lastMonth.toISOString().split('T')[0];
             }
-            
+
             if (!endDate.value) {
                 const today = new Date();
                 endDate.value = today.toISOString().split('T')[0];
@@ -411,23 +444,23 @@
                     icon: 'warning',
                     title: 'No Data',
                     text: 'No data available to export.',
-                    confirmButtonColor: '#667eea'
+                    confirmButtonColor: '#006A4E'
                 });
                 return;
             }
 
             let csv = [];
             const rows = table.querySelectorAll('tr');
-            
+
             for (let i = 0; i < rows.length; i++) {
                 const row = [];
                 const cols = rows[i].querySelectorAll('td, th');
-                
+
                 for (let j = 0; j < cols.length; j++) {
                     let cellText = cols[j].innerText.replace(/"/g, '""');
                     row.push('"' + cellText + '"');
                 }
-                
+
                 csv.push(row.join(','));
             }
 
@@ -444,7 +477,7 @@
                 icon: 'success',
                 title: 'Export Successful',
                 text: 'Report has been exported successfully!',
-                confirmButtonColor: '#667eea'
+                confirmButtonColor: '#006A4E'
             });
         }
 

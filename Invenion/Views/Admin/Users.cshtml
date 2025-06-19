@@ -12,7 +12,7 @@
         </div>
         <div class="page-actions">
             <a href="@Url.Action("PendingRegistrations")" class="btn btn-warning">
-                <i class='bx bx-time'></i>
+                <i class='bx bx-time' style="color: #03C03C;"></i>
                 Pending Registrations
             </a>
         </div>
@@ -91,7 +91,7 @@
                                             }
                                             else
                                             {
-                                                <button class="btn btn-sm btn-info" onclick="activateUser(@user.UserID, '@user.FullName')">
+                                                <button class="btn btn-sm btn-custom-info" onclick="activateUser(@user.UserID, '@user.FullName')">
                                                     <i class='bx bx-check-circle'></i>
                                                 </button>
                                             }
@@ -130,7 +130,7 @@
     .page-title h1 {
         font-size: 2rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: #003200;
         margin-bottom: 5px;
     }
 
@@ -161,7 +161,7 @@
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #006A4E 0%, #00CC99 100%);
         color: white;
         display: flex;
         align-items: center;
@@ -174,17 +174,17 @@
         margin-bottom: 0;
     }
 
-    .table th {
-        border-top: none;
-        font-weight: 600;
-        color: #495057;
-        background-color: #f8f9fa;
-    }
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+            background-color: #f8f9fa;
+        }
 
-    .table td {
-        vertical-align: middle;
-        border-top: 1px solid #eee;
-    }
+        .table td {
+            vertical-align: middle;
+            border-top: 1px solid #eee;
+        }
 
     .table-hover tbody tr:hover {
         background-color: rgba(0,0,0,0.02);
@@ -195,13 +195,38 @@
         padding: 0.35em 0.65em;
     }
 
+        /* Custom primary badge color */
+        .badge.bg-primary {
+            background-color: #006A4E !important;
+        }
+
+    /* Custom info button for activate user */
+    .btn-custom-info {
+        color: #fff;
+        background-color: #00CC99;
+        border-color: #00CC99;
+    }
+
+        .btn-custom-info:hover {
+            color: #fff;
+            background-color: #03C03C;
+            border-color: #03C03C;
+        }
+
+        .btn-custom-info:focus, .btn-custom-info.focus {
+            color: #fff;
+            background-color: #03C03C;
+            border-color: #03C03C;
+            box-shadow: 0 0 0 0.2rem rgba(0, 204, 153, 0.5);
+        }
+
     .btn-group .btn {
         margin-right: 5px;
     }
 
-    .btn-group .btn:last-child {
-        margin-right: 0;
-    }
+        .btn-group .btn:last-child {
+            margin-right: 0;
+        }
 
     .empty-state {
         text-align: center;
@@ -209,15 +234,52 @@
         color: #6c757d;
     }
 
-    .empty-state i {
-        font-size: 4rem;
-        margin-bottom: 20px;
-        opacity: 0.5;
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h5 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+    /* Custom SweetAlert2 button colors */
+    .swal2-confirm {
+        background-color: #006A4E !important;
+        border-color: #006A4E !important;
     }
 
-    .empty-state h5 {
-        margin-bottom: 10px;
-        color: #495057;
+        .swal2-confirm:hover {
+            background-color: #003200 !important;
+            border-color: #003200 !important;
+        }
+
+    /* DataTables custom styling */
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 6px 12px;
+    }
+
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: #006A4E;
+            box-shadow: 0 0 0 0.2rem rgba(0, 106, 78, 0.25);
+            outline: none;
+        }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #006A4E !important;
+        border: 1px solid #006A4E !important;
+        color: white !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: #00CC99 !important;
+        border: 1px solid #00CC99 !important;
+        color: white !important;
     }
 </style>
 
@@ -225,11 +287,16 @@
     <script>
         $(document).ready(function() {
             $('#usersTable').DataTable({
-                responsive: true,
-                order: [[6, 'desc']], // Sort by created date
-                columnDefs: [
-                    { orderable: false, targets: 7 } // Disable sorting on actions column
-                ]
+                "paging": true,
+                "ordering": true,
+                "info": false,
+                "scrollX": false,
+                "searching": true,
+                "lengthChange": true,
+                "fixedHeader": true,
+                "initComplete": function (settings, json) {
+                    $("#usersTable").wrap("<div style='overflow:auto; width:100%;position:relative;'></div>");
+                },
             });
         });
 
@@ -239,7 +306,7 @@
                 text: `Are you sure you want to approve ${userName}'s registration?`,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#28a745',
+                confirmButtonColor: '#006A4E',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Yes, approve it!'
             }).then((result) => {
@@ -248,17 +315,17 @@
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = '@Url.Action("ApproveRegistration", "Admin")';
-                    
+
                     const userIdInput = document.createElement('input');
                     userIdInput.type = 'hidden';
                     userIdInput.name = 'userId';
                     userIdInput.value = userId;
-                    
+
                     const tokenInput = document.createElement('input');
                     tokenInput.type = 'hidden';
                     tokenInput.name = '__RequestVerificationToken';
                     tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
-                    
+
                     form.appendChild(userIdInput);
                     form.appendChild(tokenInput);
                     document.body.appendChild(form);
@@ -293,7 +360,7 @@
                 text: `Are you sure you want to activate ${userName}?`,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#17a2b8',
+                confirmButtonColor: '#00CC99',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Yes, activate!'
             }).then((result) => {

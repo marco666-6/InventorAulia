@@ -1,4 +1,5 @@
 using System;
+//untuk enkripsi dan kemananan
 using System.Security.Cryptography;
 using System.Text;
 

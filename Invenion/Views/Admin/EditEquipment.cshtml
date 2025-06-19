@@ -24,9 +24,9 @@
             <div class="card-body">
                 <form asp-action="EditEquipment" method="post" id="editEquipmentForm">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                    
+
                     <input type="hidden" asp-for="EquipmentID" />
-                    
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group mb-3">
@@ -95,21 +95,10 @@
                         <span asp-validation-for="SerialNumber" class="text-danger"></span>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label asp-for="PurchaseDate" class="form-label">Purchase Date</label>
-                                <input asp-for="PurchaseDate" type="date" class="form-control" />
-                                <span asp-validation-for="PurchaseDate" class="text-danger"></span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label asp-for="WarrantyExpiry" class="form-label">Warranty Expiry</label>
-                                <input asp-for="WarrantyExpiry" type="date" class="form-control" />
-                                <span asp-validation-for="WarrantyExpiry" class="text-danger"></span>
-                            </div>
-                        </div>
+                    <div class="form-group mb-3">
+                        <label asp-for="PurchaseDate" class="form-label">Purchase Date</label>
+                        <input asp-for="PurchaseDate" type="date" class="form-control" />
+                        <span asp-validation-for="PurchaseDate" class="text-danger"></span>
                     </div>
 
                     <div class="form-group mb-4">
@@ -143,7 +132,7 @@
     .page-title h1 {
         font-size: 2rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: #003200;
         margin-bottom: 5px;
     }
 
@@ -166,7 +155,7 @@
 
     .form-label {
         font-weight: 600;
-        color: #2c3e50;
+        color: #003200;
         margin-bottom: 8px;
     }
 
@@ -178,10 +167,10 @@
         transition: all 0.3s ease;
     }
 
-    .form-control:focus, .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
+        .form-control:focus, .form-select:focus {
+            border-color: #006A4E;
+            box-shadow: 0 0 0 0.2rem rgba(0, 106, 78, 0.25);
+        }
 
     .form-actions {
         display: flex;
@@ -201,24 +190,24 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #006A4E 0%, #003200 100%);
         border: none;
     }
 
-    .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 106, 78, 0.4);
+        }
 
     .btn-secondary {
         background: #6c757d;
         border: none;
     }
 
-    .btn-secondary:hover {
-        background: #5a6268;
-        transform: translateY(-1px);
-    }
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
 
     .text-danger {
         font-size: 0.875rem;
@@ -230,13 +219,13 @@
     <script>
         document.getElementById('editEquipmentForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             Swal.fire({
                 title: 'Update Equipment?',
                 text: 'Are you sure you want to update this equipment?',
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#667eea',
+                confirmButtonColor: '#006A4E',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Yes, update it!',
                 cancelButtonText: 'Cancel'
@@ -250,26 +239,26 @@
         // Show success/error messages
         @if (TempData["SuccessMessage"] != null)
         {
-            <text>
-            Swal.fire({
-                title: 'Success!',
-                text: '@TempData["SuccessMessage"]',
-                icon: 'success',
-                confirmButtonColor: '#667eea'
-            });
-            </text>
+                    <text>
+                    Swal.fire({
+                        title: 'Success!',
+                        text: '@TempData["SuccessMessage"]',
+                        icon: 'success',
+                        confirmButtonColor: '#006A4E'
+                    });
+                    </text>
         }
 
         @if (TempData["ErrorMessage"] != null)
         {
-            <text>
-            Swal.fire({
-                title: 'Error!',
-                text: '@TempData["ErrorMessage"]',
-                icon: 'error',
-                confirmButtonColor: '#667eea'
-            });
-            </text>
+                    <text>
+                    Swal.fire({
+                        title: 'Error!',
+                        text: '@TempData["ErrorMessage"]',
+                        icon: 'error',
+                        confirmButtonColor: '#006A4E'
+                    });
+                    </text>
         }
     </script>
 }

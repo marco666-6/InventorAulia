@@ -104,7 +104,7 @@
                                 <div class="info-group">
                                     <div class="info-label">Role</div>
                                     <div class="info-value">
-                                        <span class="badge bg-primary">@Model.Role</span>
+                                        <span class="badge bg-success">@Model.Role</span>
                                     </div>
                                 </div>
                             </div>
@@ -149,7 +149,7 @@
                             <div class="security-content">
                                 <h6>Password Security</h6>
                                 <p class="text-muted">Ensure your account is secure by using a strong password.</p>
-                                <a href="@Url.Action("ChangePassword", "Staff")" class="btn btn-outline-primary btn-sm">Change Password</a>
+                                <a href="@Url.Action("ChangePassword", "Staff")" class="btn btn-outline-success btn-sm">Change Password</a>
                             </div>
                         </div>
                         <div class="security-item">
@@ -181,7 +181,7 @@
     .page-title h1 {
         font-size: 2rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: #003200;
         margin-bottom: 5px;
     }
 
@@ -196,12 +196,12 @@
         width: 80px;
         height: 80px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #006A4E 0%, #00CC99 100%);
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto 20px;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 106, 78, 0.3);
     }
 
     .avatar-letter {
@@ -213,7 +213,7 @@
     .profile-name {
         font-size: 1.5rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: #003200;
         margin-bottom: 5px;
     }
 
@@ -237,7 +237,7 @@
 
     .stat-value {
         font-weight: 600;
-        color: #2c3e50;
+        color: #003200;
     }
 
     .quick-actions-list {
@@ -256,22 +256,22 @@
         transition: all 0.2s;
     }
 
-    .quick-action-item:hover {
-        background: #f8f9fa;
-        color: #495057;
-        transform: translateX(5px);
-    }
+        .quick-action-item:hover {
+            background: #f8f9fa;
+            color: #495057;
+            transform: translateX(5px);
+        }
 
-    .quick-action-item i:first-child {
-        margin-right: 12px;
-        font-size: 18px;
-        color: #667eea;
-    }
+        .quick-action-item i:first-child {
+            margin-right: 12px;
+            font-size: 18px;
+            color: #03C03C;
+        }
 
-    .quick-action-item i:last-child {
-        margin-left: auto;
-        color: #6c757d;
-    }
+        .quick-action-item i:last-child {
+            margin-left: auto;
+            color: #6c757d;
+        }
 
     .card {
         background: white;
@@ -303,7 +303,7 @@
 
     .info-value {
         font-weight: 600;
-        color: #2c3e50;
+        color: #003200;
         font-size: 1rem;
     }
 
@@ -332,21 +332,21 @@
         width: 40px;
         height: 40px;
         border-radius: 8px;
-        background: #667eea;
+        background: #006A4E;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
     }
 
-    .security-icon i {
-        color: white;
-        font-size: 18px;
-    }
+        .security-icon i {
+            color: white;
+            font-size: 18px;
+        }
 
     .security-content h6 {
         margin-bottom: 5px;
-        color: #2c3e50;
+        color: #003200;
         font-weight: 600;
     }
 

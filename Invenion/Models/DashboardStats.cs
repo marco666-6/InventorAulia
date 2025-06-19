@@ -1,4 +1,4 @@
-// Models/DashboardStats.cs
+// Models/DashboardStats.cs  
 namespace Invenion.Models
 {
     public class DashboardStats

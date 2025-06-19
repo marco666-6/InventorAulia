@@ -28,17 +28,17 @@
                 <div class="card-body">
                     <form asp-action="SubmitRequest" method="post" id="requestForm">
                         @Html.AntiForgeryToken()
-                        
+
                         <!-- Equipment Selection -->
                         <div class="form-group mb-4">
                             <label asp-for="EquipmentID" class="form-label required">Equipment</label>
                             <select asp-for="EquipmentID" class="form-select" id="equipmentSelect" required>
                                 <option value="">-- Select Equipment --</option>
-                                @if(ViewBag.AvailableEquipment != null)
+                                @if (ViewBag.AvailableEquipment != null)
                                 {
-                                    @foreach(var equipment in (List<Invenion.Models.Equipment>)ViewBag.AvailableEquipment)
+                                    @foreach (var equipment in (List<Invenion.Models.Equipment>)ViewBag.AvailableEquipment)
                                     {
-                                        <option value="@equipment.EquipmentID" 
+                                        <option value="@equipment.EquipmentID"
                                                 data-code="@equipment.EquipmentCode"
                                                 data-brand="@equipment.Brand"
                                                 data-model="@equipment.Model"
@@ -87,7 +87,7 @@
                             <div class="col-md-6">
                                 <div class="form-group mb-4">
                                     <label asp-for="RequestedStartDate" class="form-label required">Start Date</label>
-                                    <input asp-for="RequestedStartDate" type="date" class="form-control" required 
+                                    <input asp-for="RequestedStartDate" type="date" class="form-control" required
                                            min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                                     <span asp-validation-for="RequestedStartDate" class="text-danger"></span>
                                 </div>
@@ -104,7 +104,7 @@
                         <!-- Purpose -->
                         <div class="form-group mb-4">
                             <label asp-for="Purpose" class="form-label required">Purpose of Request</label>
-                            <textarea asp-for="Purpose" class="form-control" rows="4" required 
+                            <textarea asp-for="Purpose" class="form-control" rows="4" required
                                       placeholder="Please describe the purpose and how you intend to use this equipment..."></textarea>
                             <span asp-validation-for="Purpose" class="text-danger"></span>
                             <div class="form-text">Provide detailed information about your intended use of the equipment.</div>
@@ -162,6 +162,14 @@
 </div>
 
 <style>
+    /* Custom Green Color Variables */
+    :root {
+        --primary-dark: #003200;
+        --primary-medium: #006A4E;
+        --primary-light: #00CC99;
+        --primary-accent: #03C03C;
+    }
+
     .page-container {
         padding: 20px;
     }
@@ -176,14 +184,14 @@
     .page-title h1 {
         font-size: 1.8rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--primary-dark);
         margin-bottom: 5px;
     }
 
-    .page-title h1 i {
-        color: #667eea;
-        margin-right: 8px;
-    }
+        .page-title h1 i {
+            color: var(--primary-medium);
+            margin-right: 8px;
+        }
 
     .card {
         border: none;
@@ -214,33 +222,33 @@
         transition: all 0.2s;
     }
 
-    .form-control:focus, .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 0.2rem rgba(0, 204, 153, 0.25);
+        }
 
     .equipment-details {
         background: #f8f9fa;
         border-radius: 8px;
         padding: 20px;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid var(--primary-medium);
     }
 
     .detail-item {
         margin-bottom: 10px;
     }
 
-    .detail-item label {
-        font-weight: 600;
-        color: #6c757d;
-        margin-right: 8px;
-        font-size: 0.85rem;
-    }
+        .detail-item label {
+            font-weight: 600;
+            color: #6c757d;
+            margin-right: 8px;
+            font-size: 0.85rem;
+        }
 
-    .detail-item span {
-        color: #495057;
-        font-weight: 500;
-    }
+        .detail-item span {
+            color: #495057;
+            font-weight: 500;
+        }
 
     .form-actions {
         display: flex;
@@ -255,15 +263,52 @@
         transition: all 0.2s;
     }
 
+    /* Custom Primary Button Styling */
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-dark) 100%);
         border: none;
+        color: white;
     }
 
-    .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-medium) 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 106, 78, 0.4);
+            color: white;
+        }
+
+        .btn-primary:focus, .btn-primary.focus {
+            background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-dark) 100%);
+            box-shadow: 0 0 0 0.2rem rgba(0, 204, 153, 0.25);
+            color: white;
+        }
+
+        .btn-primary:active, .btn-primary.active {
+            background: var(--primary-dark);
+            color: white;
+        }
+
+    /* Custom Outline Primary Button Styling */
+    .btn-outline-primary {
+        color: var(--primary-medium);
+        border-color: var(--primary-medium);
     }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-medium);
+            border-color: var(--primary-medium);
+            color: white;
+        }
+
+        .btn-outline-primary:focus, .btn-outline-primary.focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 204, 153, 0.25);
+        }
+
+        .btn-outline-primary:active, .btn-outline-primary.active {
+            background-color: var(--primary-medium);
+            border-color: var(--primary-medium);
+            color: white;
+        }
 
     .guidelines-list {
         display: flex;
@@ -278,8 +323,41 @@
         font-size: 0.9rem;
     }
 
-    .guideline-item i {
-        font-size: 16px;
+        .guideline-item i {
+            font-size: 16px;
+        }
+
+    /* Form Check Custom Styling */
+    .form-check-input:checked {
+        background-color: var(--primary-medium);
+        border-color: var(--primary-medium);
+    }
+
+    .form-check-input:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 0.2rem rgba(0, 204, 153, 0.25);
+    }
+
+    /* Select2 Custom Styling */
+    .select2-container--default .select2-selection--single {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        height: auto;
+        padding: 6px 12px;
+    }
+
+        .select2-container--default .select2-selection--single:focus,
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 0.2rem rgba(0, 204, 153, 0.25);
+        }
+
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: var(--primary-light);
+    }
+
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: var(--primary-medium);
     }
 </style>
 
@@ -295,7 +373,7 @@
             // Show equipment details when selected
             $('#equipmentSelect').change(function() {
                 const selectedOption = $(this).find('option:selected');
-                
+
                 if (selectedOption.val()) {
                     $('#detailCode').text(selectedOption.data('code') || '-');
                     $('#detailBrand').text(selectedOption.data('brand') || '-');
@@ -326,13 +404,13 @@
             // Form submission with SweetAlert confirmation
             $('#requestForm').submit(function(e) {
                 e.preventDefault();
-                
+
                 if (!$('#agreeTerms').is(':checked')) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Agreement Required',
                         text: 'Please agree to the Terms and Conditions before submitting your request.',
-                        confirmButtonColor: '#667eea'
+                        confirmButtonColor: '#006A4E'
                     });
                     return;
                 }
@@ -342,7 +420,7 @@
                     text: 'Are you sure you want to submit this borrowing request?',
                     icon: 'question',
                     showCancelButton: true,
-                    confirmButtonColor: '#667eea',
+                    confirmButtonColor: '#006A4E',
                     cancelButtonColor: '#6c757d',
                     confirmButtonText: 'Yes, Submit Request',
                     cancelButtonText: 'Review Again'
@@ -350,7 +428,7 @@
                     if (result.isConfirmed) {
                         // Show loading state
                         $('#submitBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Submitting...');
-                        
+
                         // Submit the form
                         this.submit();
                     }

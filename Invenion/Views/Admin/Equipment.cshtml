@@ -110,7 +110,6 @@
                                 <th>Serial Number</th>
                                 <th>Status</th>
                                 <th>Purchase Date</th>
-                                <th>Warranty</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -202,29 +201,12 @@
                                         }
                                     </td>
                                     <td>
-                                        @if (equipment.WarrantyExpiry.HasValue)
-                                        {
-                                            var isExpired = equipment.WarrantyExpiry.Value < DateTime.Now;
-                                            <span class="@(isExpired ? "text-danger" : "text-success")">
-                                                @equipment.WarrantyExpiry.Value.ToString("MMM dd, yyyy")
-                                                @if (isExpired)
-                                                {
-                                                    <small class="d-block">Expired</small>
-                                                }
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">-</span>
-                                        }
-                                    </td>
-                                    <td>
                                         <div class="action-buttons">
-                                            <a href="@Url.Action("EditEquipment", new { id = equipment.EquipmentID })" 
+                                            <a href="@Url.Action("EditEquipment", new { id = equipment.EquipmentID })"
                                                class="btn btn-sm btn-outline-primary" title="Edit">
                                                 <i class='bx bx-edit'></i>
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-outline-info" 
+                                            <button type="button" class="btn btn-sm btn-outline-info"
                                                     onclick="viewEquipmentDetails(@equipment.EquipmentID)" title="View Details">
                                                 <i class='bx bx-show'></i>
                                             </button>
@@ -270,6 +252,52 @@
 </div>
 
 <style>
+    :root {
+        --primary-green: #003200;
+        --secondary-green: #006A4E;
+        --accent-green: #00CC99;
+        --bright-green: #03C03C;
+    }
+
+    /* Override Bootstrap primary color */
+    .btn-primary {
+        background-color: var(--secondary-green);
+        border-color: var(--secondary-green);
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: var(--primary-green);
+            border-color: var(--primary-green);
+            color: white;
+        }
+
+        .btn-primary:focus, .btn-primary.focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 106, 78, 0.25);
+        }
+
+    .btn-outline-primary {
+        color: var(--secondary-green);
+        border-color: var(--secondary-green);
+    }
+
+        .btn-outline-primary:hover {
+            background-color: var(--secondary-green);
+            border-color: var(--secondary-green);
+            color: white;
+        }
+
+    .btn-outline-info {
+        color: var(--accent-green);
+        border-color: var(--accent-green);
+    }
+
+        .btn-outline-info:hover {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+            color: white;
+        }
+
     .equipment-container {
         padding: 20px;
     }
@@ -284,7 +312,7 @@
     .page-title h1 {
         font-size: 2rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--primary-green);
         margin-bottom: 5px;
     }
 
@@ -298,9 +326,9 @@
         transition: transform 0.2s;
     }
 
-    .stat-card:hover {
-        transform: translateY(-2px);
-    }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
 
     .stat-icon {
         width: 60px;
@@ -312,21 +340,32 @@
         margin-right: 20px;
     }
 
-    .stat-icon i {
-        font-size: 20px;
-        color: white;
+        .stat-icon i {
+            font-size: 20px;
+            color: white;
+        }
+
+    .stat-primary .stat-icon {
+        background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);
     }
 
-    .stat-primary .stat-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .stat-success .stat-icon { background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); }
-    .stat-warning .stat-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    .stat-danger .stat-icon { background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%); }
+    .stat-success .stat-icon {
+        background: linear-gradient(135deg, var(--bright-green) 0%, var(--accent-green) 100%);
+    }
+
+    .stat-warning .stat-icon {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-danger .stat-icon {
+        background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+    }
 
     .stat-info h4 {
         font-size: 1.5rem;
         font-weight: 700;
         margin-bottom: 2px;
-        color: #2c3e50;
+        color: var(--primary-green);
     }
 
     .stat-info span {
@@ -347,24 +386,33 @@
         padding: 20px 25px;
     }
 
+    .card-title {
+        color: var(--primary-green);
+    }
+
     .search-box {
         position: relative;
         width: 300px;
     }
 
-    .search-box input {
-        padding-left: 40px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-    }
+        .search-box input {
+            padding-left: 40px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
 
-    .search-box i {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6c757d;
-    }
+            .search-box input:focus {
+                border-color: var(--accent-green);
+                box-shadow: 0 0 0 0.2rem rgba(0, 204, 153, 0.25);
+            }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
 
     .equipment-code {
         font-family: 'Courier New', monospace;
@@ -375,7 +423,7 @@
     }
 
     .equipment-info strong {
-        color: #2c3e50;
+        color: var(--primary-green);
     }
 
     .status-badge {
@@ -413,9 +461,9 @@
         gap: 5px;
     }
 
-    .action-buttons .btn {
-        padding: 6px 10px;
-    }
+        .action-buttons .btn {
+            padding: 6px 10px;
+        }
 
     .empty-state {
         text-align: center;
@@ -433,13 +481,13 @@
         margin: 0 auto 20px;
     }
 
-    .empty-icon i {
-        font-size: 2rem;
-        color: #6c757d;
-    }
+        .empty-icon i {
+            font-size: 2rem;
+            color: #6c757d;
+        }
 
     .empty-state h4 {
-        color: #2c3e50;
+        color: var(--primary-green);
         margin-bottom: 10px;
     }
 
@@ -450,7 +498,7 @@
 
     .table th {
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--primary-green);
         border-bottom: 2px solid #eee;
     }
 
@@ -462,6 +510,14 @@
     .table tbody tr:hover {
         background-color: #f8f9fa;
     }
+
+    .spinner-border.text-primary {
+        color: var(--secondary-green) !important;
+    }
+
+    .modal-title {
+        color: var(--primary-green);
+    }
 </style>
 
 @section Scripts {
@@ -470,7 +526,7 @@
         document.getElementById('equipmentSearch').addEventListener('keyup', function() {
             const searchTerm = this.value.toLowerCase();
             const tableRows = document.querySelectorAll('#equipmentTable tbody tr');
-            
+
             tableRows.forEach(row => {
                 const text = row.textContent.toLowerCase();
                 row.style.display = text.includes(searchTerm) ? '' : 'none';
@@ -491,7 +547,7 @@
                 </div>
             `;
             modal.show();
-            
+
             // Simulate loading delay
             setTimeout(() => {
                 document.getElementById('equipmentDetailsContent').innerHTML = `
