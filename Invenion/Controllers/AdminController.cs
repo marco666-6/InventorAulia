@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System.Data.SqlClient;
 using Microsoft.Data.SqlClient;
+using System.Net.Mail;
+using System.Net;
 using System.Data;
 
 namespace Invenion.Controllers
@@ -653,6 +655,8 @@ namespace Invenion.Controllers
                     }
                 }
 
+                bool emailSent = SendWelcomeEmail(userId, adminUserId);
+
                 TempData["SuccessMessage"] = "User registration approved successfully!";
             }
             catch (Exception ex)
@@ -770,7 +774,7 @@ namespace Invenion.Controllers
                 ViewBag.Categories = new List<EquipmentCategory>();
             }
         }
-        
+
         // GET: Get Categories for AJAX
         [HttpGet]
         public IActionResult GetCategories()
@@ -781,14 +785,14 @@ namespace Invenion.Controllers
             try
             {
                 List<EquipmentCategory> categories = new List<EquipmentCategory>();
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand("sp_GetEquipmentCategories", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         connection.Open();
-                        
+
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -942,5 +946,170 @@ namespace Invenion.Controllers
                 return Json(new { success = false, message = "An error occurred." });
             }
         }
+        
+        private bool SendWelcomeEmail(int userId, int adminUserId)
+        {
+            try
+            {
+                var smtpClient = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("marcophilips73@gmail.com", "ldkf kpxy akzh sxbj"),
+                    EnableSsl = true,
+                };
+                
+                using (var connection = new SqlConnection(_dal.GetConnectionString()))
+                {
+                    connection.Open();
+                    
+                    // Get user details
+                    string userQuery = "SELECT Username, Email, FullName, Department, Role, Password FROM Users WHERE UserID = @UserId";
+                    var user = new { Username = "", Email = "", FullName = "", Department = "", Role = "", Password = "" };
+                    
+                    using (var command = new SqlCommand(userQuery, connection))
+                    {
+                        command.Parameters.AddWithValue("@UserId", userId);
+                        using (var reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                user = new 
+                                {
+                                    Username = reader["Username"].ToString(),
+                                    Email = reader["Email"].ToString(),
+                                    FullName = reader["FullName"].ToString(),
+                                    Department = reader["Department"].ToString(),
+                                    Role = reader["Role"].ToString(),
+                                    Password = reader["Password"].ToString()
+                                };
+                            }
+                        }
+                    }
+                    
+                    // Get admin details
+                    string adminQuery = "SELECT FullName FROM Users WHERE UserID = @AdminId";
+                    string adminName = "";
+                    
+                    using (var command = new SqlCommand(adminQuery, connection))
+                    {
+                        command.Parameters.AddWithValue("@AdminId", adminUserId);
+                        var result = command.ExecuteScalar();
+                        adminName = result?.ToString() ?? "Administrator";
+                    }
+                    
+                    // HTML email body
+                    string body = $@"
+                        <html>
+                        <head>
+                            <style>
+                                body {{
+                                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                    line-height: 1.6;
+                                    color: #333;
+                                    max-width: 600px;
+                                    margin: 0 auto;
+                                    padding: 20px;
+                                    background-color: #f9f9f9;
+                                }}
+                                .email-container {{
+                                    background-color: white;
+                                    border-radius: 8px;
+                                    padding: 30px;
+                                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                                }}
+                                .header {{
+                                    color: #2c3e50;
+                                    border-bottom: 2px solid #3498db;
+                                    padding-bottom: 10px;
+                                    margin-bottom: 20px;
+                                }}
+                                .logo {{
+                                    color: #3498db;
+                                    font-weight: bold;
+                                    font-size: 24px;
+                                }}
+                                .details {{
+                                    background-color: #f8f9fa;
+                                    padding: 15px;
+                                    border-radius: 5px;
+                                    margin: 20px 0;
+                                }}
+                                .detail-item {{
+                                    margin-bottom: 8px;
+                                }}
+                                .footer {{
+                                    margin-top: 30px;
+                                    font-size: 12px;
+                                    color: #7f8c8d;
+                                    text-align: center;
+                                }}
+                                .button {{
+                                    display: inline-block;
+                                    padding: 10px 20px;
+                                    background-color: #3498db;
+                                    color: white;
+                                    text-decoration: none;
+                                    border-radius: 5px;
+                                    margin: 20px 0;
+                                }}
+                                .highlight {{
+                                    font-weight: bold;
+                                    color: #e74c3c;
+                                }}
+                            </style>
+                        </head>
+                        <body>
+                            <div class='email-container'>
+                                <div class='header'>
+                                    <span class='logo'>Invenion System</span>
+                                    <h1>Welcome to Our Platform!</h1>
+                                </div>
+                                
+                                <p>Dear <strong>{user.FullName}</strong>,</p>
+                                
+                                <p>We're excited to inform you that your account has been successfully created and approved by <strong>{adminName}</strong>.</p>
+                                
+                                <div class='details'>
+                                    <div class='detail-item'><strong>Username:</strong> {user.Username}</div>
+                                    <div class='detail-item'><strong>Email:</strong> {user.Email}</div>
+                                    <div class='detail-item'><strong>Department:</strong> {user.Department}</div>
+                                    <div class='detail-item'><strong>Role:</strong> {user.Role}</div>
+                                </div>
+                                
+                                <p>For security reasons, please change your password immediately after logging in (optional).</p>
+                                
+                                <a href='http://localhost:5070/' class='button'>Login to Your Account</a>
+                               
+                                <div class='footer'>
+                                    <p>Best regards,</p>
+                                    <p><strong>Invenion Admin Team</strong></p>
+                                    <p>© 2023 Invenion System. All rights reserved.</p>
+                                </div>
+                            </div>
+                        </body>
+                        </html>
+                    ";
+
+                    var mailMessage = new MailMessage
+                    {
+                        From = new MailAddress("marcophilips73@gmail.com"),
+                        Subject = "Welcome to Invenion System",
+                        Body = body,
+                        IsBodyHtml = true,
+                    };
+                    mailMessage.To.Add(user.Email);
+                    
+                    smtpClient.Send(mailMessage);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error
+                Console.WriteLine($"Error sending email: {ex.Message}");
+                return false;
+            }
+        }
+
     }
 }
