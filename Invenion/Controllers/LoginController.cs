@@ -7,6 +7,8 @@ using Newtonsoft.Json;
 using System.Data.SqlClient;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Net.Mail;
+using System.Net;
 
 namespace Invenion.Controllers
 {
@@ -186,7 +188,7 @@ namespace Invenion.Controllers
             return View();
         }
 
-        // POST: ForgotPassword
+        // Replace your existing ForgotPassword POST method with this complete implementation
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ForgotPassword(string email)
@@ -203,29 +205,69 @@ namespace Invenion.Controllers
                 string resetToken = SecurityHelper.GenerateResetToken();
                 DateTime expiry = DateTime.Now.AddHours(24);
 
-                // Update user with reset token
+                // First, check if user exists and get user details
+                string userFullName = "";
+                string userUsername = "";
+                bool userExists = false;
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
-                    using (SqlCommand command = new SqlCommand(
+                    connection.Open();
+
+                    // Check if user exists and get details
+                    using (SqlCommand checkCommand = new SqlCommand(
+                        "SELECT FullName, Username FROM Users WHERE Email = @Email AND IsActive = 1", 
+                        connection))
+                    {
+                        checkCommand.Parameters.AddWithValue("@Email", email);
+                        using (SqlDataReader reader = checkCommand.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                userExists = true;
+                                userFullName = reader["FullName"].ToString();
+                                userUsername = reader["Username"].ToString();
+                            }
+                        }
+                    }
+
+                    if (!userExists)
+                    {
+                        // For security reasons, don't reveal if email exists or not
+                        TempData["SuccessMessage"] = "If your email is registered with us, you will receive password reset instructions shortly.";
+                        return RedirectToAction("Index");
+                    }
+
+                    // Update user with reset token
+                    using (SqlCommand updateCommand = new SqlCommand(
                         "UPDATE Users SET ResetToken = @ResetToken, ResetTokenExpiry = @Expiry WHERE Email = @Email AND IsActive = 1", 
                         connection))
                     {
-                        command.Parameters.AddWithValue("@ResetToken", resetToken);
-                        command.Parameters.AddWithValue("@Expiry", expiry);
-                        command.Parameters.AddWithValue("@Email", email);
+                        updateCommand.Parameters.AddWithValue("@ResetToken", resetToken);
+                        updateCommand.Parameters.AddWithValue("@Expiry", expiry);
+                        updateCommand.Parameters.AddWithValue("@Email", email);
 
-                        connection.Open();
-                        int rowsAffected = command.ExecuteNonQuery();
+                        int rowsAffected = updateCommand.ExecuteNonQuery();
 
                         if (rowsAffected > 0)
                         {
-                            // In a real application, you would send an email here
-                            TempData["SuccessMessage"] = "Password reset instructions have been sent to your email.";
+                            // Send password reset email
+                            bool emailSent = SendPasswordResetEmail(email, userFullName, userUsername, resetToken);
+                            
+                            if (emailSent)
+                            {
+                                TempData["SuccessMessage"] = "Password reset instructions have been sent to your email.";
+                            }
+                            else
+                            {
+                                TempData["ErrorMessage"] = "Failed to send email. Please try again later.";
+                            }
+                            
                             return RedirectToAction("Index");
                         }
                         else
                         {
-                            ModelState.AddModelError("", "Email not found or account is inactive.");
+                            TempData["ErrorMessage"] = "An error occurred. Please try again.";
                             return View();
                         }
                     }
@@ -233,8 +275,157 @@ namespace Invenion.Controllers
             }
             catch (Exception ex)
             {
+                // Log the error (you might want to implement proper logging)
+                Console.WriteLine($"Error in ForgotPassword: {ex.Message}");
                 ModelState.AddModelError("", "An error occurred. Please try again.");
                 return View();
+            }
+        }
+
+        // Add this new method to send password reset emails
+        private bool SendPasswordResetEmail(string email, string fullName, string username, string resetToken)
+        {
+            try
+            {
+                var smtpClient = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("auliahusna104@gmail.com", "dpkh ogsb jusc pvyf"),
+                    EnableSsl = true,
+                };
+
+                // Create the reset URL (adjust the URL to match your application)
+                string resetUrl = $"http://localhost:5070/Login/ResetPassword?token={resetToken}";
+
+                // HTML email body
+                string body = $@"
+                    <html>
+                    <head>
+                        <style>
+                            body {{
+                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                line-height: 1.6;
+                                color: #333;
+                                max-width: 600px;
+                                margin: 0 auto;
+                                padding: 20px;
+                                background-color: #f9f9f9;
+                            }}
+                            .email-container {{
+                                background-color: white;
+                                border-radius: 8px;
+                                padding: 30px;
+                                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                            }}
+                            .header {{
+                                color: #2c3e50;
+                                border-bottom: 2px solid #e74c3c;
+                                padding-bottom: 10px;
+                                margin-bottom: 20px;
+                            }}
+                            .logo {{
+                                color: #e74c3c;
+                                font-weight: bold;
+                                font-size: 24px;
+                            }}
+                            .warning {{
+                                background-color: #fff3cd;
+                                border: 1px solid #ffeaa7;
+                                color: #856404;
+                                padding: 15px;
+                                border-radius: 5px;
+                                margin: 20px 0;
+                            }}
+                            .button {{
+                                display: inline-block;
+                                padding: 12px 25px;
+                                background-color: #e74c3c;
+                                color: white;
+                                text-decoration: none;
+                                border-radius: 5px;
+                                margin: 20px 0;
+                                font-weight: bold;
+                            }}
+                            .footer {{
+                                margin-top: 30px;
+                                font-size: 12px;
+                                color: #7f8c8d;
+                                text-align: center;
+                                border-top: 1px solid #ecf0f1;
+                                padding-top: 20px;
+                            }}
+                            .security-note {{
+                                font-size: 14px;
+                                color: #e74c3c;
+                                font-weight: bold;
+                                margin: 15px 0;
+                            }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class='email-container'>
+                            <div class='header'>
+                                <span class='logo'>🔐 Invenion System</span>
+                                <h1>Password Reset Request</h1>
+                            </div>
+                            
+                            <p>Hello <strong>{fullName}</strong>,</p>
+                            
+                            <p>We received a request to reset the password for your account (<strong>{username}</strong>).</p>
+                            
+                            <div class='warning'>
+                                <strong>⚠️ Security Notice:</strong> If you did not request this password reset, please ignore this email. Your account remains secure.
+                            </div>
+                            
+                            <p>To reset your password, click the button below:</p>
+                            
+                            <a href='{resetUrl}' class='button'>Reset My Password</a>
+                            
+                            <p>Or copy and paste this link into your browser:</p>
+                            <p style='word-break: break-all; background-color: #f8f9fa; padding: 10px; border-radius: 3px; font-family: monospace;'>{resetUrl}</p>
+                            
+                            <div class='security-note'>
+                                🕐 This link will expire in 24 hours for security reasons.
+                            </div>
+                            
+                            <p>If you're having trouble with the link above, you can also:</p>
+                            <ul>
+                                <li>Go to the login page</li>
+                                <li>Click ""Forgot Password""</li>
+                                <li>Enter your email address</li>
+                            </ul>
+                            
+                            <div class='footer'>
+                                <p>Best regards,</p>
+                                <p><strong>Invenion Security Team</strong></p>
+                                <p>© 2024 Invenion System. All rights reserved.</p>
+                                <p style='margin-top: 10px;'>
+                                    <small>This is an automated message. Please do not reply to this email.</small>
+                                </p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                ";
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress("auliahusna104@gmail.com", "Invenion System"),
+                    Subject = "Password Reset Request - Invenion System",
+                    Body = body,
+                    IsBodyHtml = true,
+                };
+                
+                mailMessage.To.Add(email);
+
+                smtpClient.Send(mailMessage);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Log error (implement proper logging as needed)
+                Console.WriteLine($"Error sending password reset email: {ex.Message}");
+                return false;
             }
         }
 

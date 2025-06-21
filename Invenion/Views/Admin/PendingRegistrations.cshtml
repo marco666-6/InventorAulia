@@ -199,7 +199,7 @@
 
     /* Custom primary button */
     .btn-custom-primary {
-        color: #fff;
+        color: #ffff;
         background-color: #006A4E;
         border-color: #006A4E;
         padding: 0.375rem 0.75rem;
@@ -297,11 +297,35 @@
                 cancelButtonText: 'Cancel'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Swal.fire(
-                        'Feature Coming Soon!',
-                        'Registration rejection functionality will be implemented soon.',
-                        'info'
-                    );
+                    // Show loading
+                    Swal.fire({
+                        title: 'Processing...',
+                        text: 'Rejecting registration',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Create a form and submit it
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '@Url.Action("DeleteUser", "Admin")';
+
+                    const userIdInput = document.createElement('input');
+                    userIdInput.type = 'hidden';
+                    userIdInput.name = 'userId';
+                    userIdInput.value = userId;
+
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
+
+                    form.appendChild(userIdInput);
+                    form.appendChild(tokenInput);
+                    document.body.appendChild(form);
+                    form.submit();
                 }
             });
         }

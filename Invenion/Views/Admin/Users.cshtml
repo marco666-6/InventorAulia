@@ -76,7 +76,7 @@
                                     </td>
                                     <td>@user.CreatedDate.ToString("MMM dd, yyyy")</td>
                                     <td>
-                                        <div class="btn-group">
+                                        <div class="btn-group d-flex flex-column justify-content-center align-items-center align-middle text-center gap-2">
                                             @if (!user.IsApproved && user.IsActive)
                                             {
                                                 <button class="btn btn-sm btn-success" onclick="approveUser(@user.UserID, '@user.FullName')">
@@ -95,6 +95,9 @@
                                                     <i class='bx bx-check-circle'></i>
                                                 </button>
                                             }
+                                            <button class="btn btn-sm btn-danger" onclick="deleteUser(@user.UserID, '@user.FullName')">
+                                                <i class='bx bx-trash'></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -220,14 +223,6 @@
             box-shadow: 0 0 0 0.2rem rgba(0, 204, 153, 0.5);
         }
 
-    .btn-group .btn {
-        margin-right: 5px;
-    }
-
-        .btn-group .btn:last-child {
-            margin-right: 0;
-        }
-
     .empty-state {
         text-align: center;
         padding: 60px 20px;
@@ -344,12 +339,33 @@
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Yes, deactivate!'
             }).then((result) => {
-                if (result.isConfirmed) {
+                @* if (result.isConfirmed) {
                     Swal.fire(
                         'Feature Coming Soon!',
                         'User deactivation functionality will be implemented soon.',
                         'info'
                     );
+                } *@
+                if (result.isConfirmed) {
+                    // Create a form and submit it
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '@Url.Action("DeactivateUser", "Admin")';
+
+                    const userIdInput = document.createElement('input');
+                    userIdInput.type = 'hidden';
+                    userIdInput.name = 'userId';
+                    userIdInput.value = userId;
+
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
+
+                    form.appendChild(userIdInput);
+                    form.appendChild(tokenInput);
+                    document.body.appendChild(form);
+                    form.submit();
                 }
             });
         }
@@ -365,11 +381,59 @@
                 confirmButtonText: 'Yes, activate!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Swal.fire(
-                        'Feature Coming Soon!',
-                        'User activation functionality will be implemented soon.',
-                        'info'
-                    );
+                    // Create a form and submit it
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '@Url.Action("ActivateUser", "Admin")';
+
+                    const userIdInput = document.createElement('input');
+                    userIdInput.type = 'hidden';
+                    userIdInput.name = 'userId';
+                    userIdInput.value = userId;
+
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
+
+                    form.appendChild(userIdInput);
+                    form.appendChild(tokenInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        function deleteUser(userId, userName) {
+            Swal.fire({
+                title: 'Delete User?',
+                text: `Are you sure you want to delete ${userName}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#00CC99',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Create a form and submit it
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '@Url.Action("DeleteUser", "Admin")';
+
+                    const userIdInput = document.createElement('input');
+                    userIdInput.type = 'hidden';
+                    userIdInput.name = 'userId';
+                    userIdInput.value = userId;
+
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
+
+                    form.appendChild(userIdInput);
+                    form.appendChild(tokenInput);
+                    document.body.appendChild(form);
+                    form.submit();
                 }
             });
         }
