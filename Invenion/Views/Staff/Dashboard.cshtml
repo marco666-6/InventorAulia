@@ -361,6 +361,24 @@
 
 @section Scripts {
     <script>
+        $(document).ready(function() {
+            setTimeout(function() {
+                $.ajax({
+                    url: "@Url.Action("ProcessOverdueRequests")",
+                    type: "GET",
+                    success: function (data) {
+                        console.log("Overdue requests processed successfully.", data);
+                    }
+                });
+                $.ajax({
+                    url: "@Url.Action("ProcessOverdueReminders")",
+                    type: "GET",
+                    success: function (data) {
+                        console.log("Overdue requests processed successfully.", data);
+                    }
+                });
+            }, 2500); // Wait 3 seconds (3000 milliseconds) then execute AJAX
+        });
         // Update current time
         function updateTime() {
             const now = new Date();

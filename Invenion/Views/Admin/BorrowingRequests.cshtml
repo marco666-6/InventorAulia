@@ -104,6 +104,9 @@
                                         case "Returned":
                                             <span class="badge bg-secondary">Returned</span>
                                             break;
+                                        case "Overdue":
+                                            <span class="badge bg-danger">Overdue</span>
+                                            break;
                                         default:
                                             <span class="badge bg-light text-dark">@request.Status</span>
                                             break;
@@ -124,7 +127,7 @@
                                                 <i class='bx bx-x'></i>
                                             </button>
                                         }
-                                        else if (request.Status == "Approved" || request.Status == "Borrowed")
+                                        else if (request.Status == "Approved" || request.Status == "Borrowed" || request.Status == "Overdue")
                                         {
                                             <button class="btn btn-outline-info" onclick="returnEquipment(@request.RequestID)">
                                                 <i class='bx bx-undo'></i>
@@ -259,6 +262,24 @@
 
 @section Scripts {
     <script>
+        $(document).ready(function() {
+            setTimeout(function() {
+                $.ajax({
+                    url: "@Url.Action("ProcessOverdueRequests")",
+                    type: "GET",
+                    success: function (data) {
+                        console.log("Overdue requests processed successfully.", data);
+                    }
+                });
+                $.ajax({
+                    url: "@Url.Action("ProcessOverdueReminders")",
+                    type: "GET",
+                    success: function (data) {
+                        console.log("Overdue requests processed successfully.", data);
+                    }
+                });
+            }, 2500); // Wait 3 seconds (3000 milliseconds) then execute AJAX
+        });
         function filterTable(status) {
             const rows = document.querySelectorAll('#requestsTable tbody tr');
             rows.forEach(row => {

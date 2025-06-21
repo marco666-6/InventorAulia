@@ -412,7 +412,26 @@
 </style>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+        $(document).ready(function() {
+            setTimeout(function() {
+                $.ajax({
+                    url: "@Url.Action("ProcessOverdueRequests")",
+                    type: "GET",
+                    success: function (data) {
+                        console.log("Overdue requests processed successfully.", data);
+                    }
+                });
+                $.ajax({
+                    url: "@Url.Action("ProcessOverdueReminders")",
+                    type: "GET",
+                    success: function (data) {
+                        console.log("Overdue requests processed successfully.", data);
+                    }
+                });
+            }, 2500); // Wait 3 seconds (3000 milliseconds) then execute AJAX
+        });
         // Set default dates if not set
         document.addEventListener('DOMContentLoaded', function() {
             const startDate = document.getElementById('startDate');
@@ -437,7 +456,6 @@
         }
 
         function exportReport() {
-            // Simple CSV export
             const table = document.getElementById('reportTable');
             if (!table) {
                 Swal.fire({
@@ -449,34 +467,97 @@
                 return;
             }
 
-            let csv = [];
-            const rows = table.querySelectorAll('tr');
-
-            for (let i = 0; i < rows.length; i++) {
-                const row = [];
-                const cols = rows[i].querySelectorAll('td, th');
-
-                for (let j = 0; j < cols.length; j++) {
-                    let cellText = cols[j].innerText.replace(/"/g, '""');
-                    row.push('"' + cellText + '"');
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            
+            // Convert HTML table to worksheet
+            const ws = XLSX.utils.table_to_sheet(table);
+            
+            // Get the range of the worksheet
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            
+            // Style the header row
+            for (let col = range.s.c; col <= range.e.c; col++) {
+                const headerCell = ws[XLSX.utils.encode_cell({r: 0, c: col})];
+                if (headerCell) {
+                    headerCell.s = {
+                        font: {
+                            bold: true,
+                            color: { rgb: "FFFFFF" }
+                        },
+                        fill: {
+                            fgColor: { rgb: "006A4E" }
+                        },
+                        alignment: {
+                            horizontal: "center",
+                            vertical: "center"
+                        },
+                        border: {
+                            top: { style: "thin", color: { rgb: "000000" } },
+                            bottom: { style: "thin", color: { rgb: "000000" } },
+                            left: { style: "thin", color: { rgb: "000000" } },
+                            right: { style: "thin", color: { rgb: "000000" } }
+                        }
+                    };
                 }
-
-                csv.push(row.join(','));
             }
-
-            const csvFile = new Blob([csv.join('\n')], { type: 'text/csv' });
-            const downloadLink = document.createElement('a');
-            downloadLink.download = 'borrowing_report_' + new Date().toISOString().split('T')[0] + '.csv';
-            downloadLink.href = window.URL.createObjectURL(csvFile);
-            downloadLink.style.display = 'none';
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-
+            
+            // Style data rows
+            for (let row = range.s.r + 1; row <= range.e.r; row++) {
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    const cell = ws[XLSX.utils.encode_cell({r: row, c: col})];
+                    if (cell) {
+                        cell.s = {
+                            alignment: {
+                                horizontal: "left",
+                                vertical: "center"
+                            },
+                            border: {
+                                top: { style: "thin", color: { rgb: "CCCCCC" } },
+                                bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+                                left: { style: "thin", color: { rgb: "CCCCCC" } },
+                                right: { style: "thin", color: { rgb: "CCCCCC" } }
+                            }
+                        };
+                        
+                        // Alternate row colors
+                        if (row % 2 === 0) {
+                            cell.s.fill = {
+                                fgColor: { rgb: "F9F9F9" }
+                            };
+                        }
+                    }
+                }
+            }
+            
+            // Set column widths
+            const colWidths = [];
+            for (let col = range.s.c; col <= range.e.c; col++) {
+                let maxWidth = 10;
+                for (let row = range.s.r; row <= range.e.r; row++) {
+                    const cell = ws[XLSX.utils.encode_cell({r: row, c: col})];
+                    if (cell && cell.v) {
+                        const cellLength = cell.v.toString().length;
+                        maxWidth = Math.max(maxWidth, cellLength + 2);
+                    }
+                }
+                colWidths.push({ wch: Math.min(maxWidth, 50) }); // Max width of 50
+            }
+            ws['!cols'] = colWidths;
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Borrowing Report");
+            
+            // Generate filename with current date
+            const filename = 'borrowing_report_' + new Date().toISOString().split('T')[0] + '.xlsx';
+            
+            // Write and download the file
+            XLSX.writeFile(wb, filename);
+            
             Swal.fire({
                 icon: 'success',
                 title: 'Export Successful',
-                text: 'Report has been exported successfully!',
+                text: 'Excel report has been exported successfully!',
                 confirmButtonColor: '#006A4E'
             });
         }

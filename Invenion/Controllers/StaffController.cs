@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System.Data.SqlClient;
 using Microsoft.Data.SqlClient;
+using System.Net.Mail;
+using System.Net;
 using System.Data;
 
 namespace Invenion.Controllers
@@ -629,6 +631,383 @@ namespace Invenion.Controllers
 
             return RedirectToAction("MyRequests");
         }
+        
+        // Add these methods to your controller
+        [HttpGet]
+        public IActionResult ProcessOverdueRequests()
+        {
+            var authCheck = CheckAuth();
+            if (authCheck != null) return authCheck;
+
+            try
+            {
+                var overdueUsers = new List<OverdueRequest>();
+
+                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
+                {
+                    using (SqlCommand command = new SqlCommand("sp_UpdateOverdueRequests", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        connection.Open();
+
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                overdueUsers.Add(new OverdueRequest
+                                {
+                                    UserID = Convert.ToInt32(reader["UserID"]),
+                                    RequestID = Convert.ToInt32(reader["RequestID"]),
+                                    EquipmentID = Convert.ToInt32(reader["EquipmentID"]),
+                                    EquipmentName = reader["EquipmentName"].ToString(),
+                                    RequestedEndDate = Convert.ToDateTime(reader["RequestedEndDate"]),
+                                    UserEmail = reader["UserEmail"].ToString(),
+                                    UserFullName = reader["UserFullName"].ToString()
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Send emails to all overdue users
+                int emailsSent = 0;
+                foreach (var overdueRequest in overdueUsers)
+                {
+                    if (SendOverdueEmail(overdueRequest))
+                    {
+                        emailsSent++;
+                    }
+                }
+
+                
+                return Json(new { success = true, overdueCount = overdueUsers.Count, emailsSent = emailsSent });
+            }
+            catch (Exception ex)
+            {
+                
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ProcessOverdueReminders()
+        {
+            var authCheck = CheckAuth();
+            if (authCheck != null) return authCheck;
+
+            try
+            {
+                var reminderUsers = new List<OverdueRequest>();
+
+                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
+                {
+                    using (SqlCommand command = new SqlCommand("sp_GetOverdueReminders", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        connection.Open();
+
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                reminderUsers.Add(new OverdueRequest
+                                {
+                                    UserID = Convert.ToInt32(reader["UserID"]),
+                                    RequestID = Convert.ToInt32(reader["RequestID"]),
+                                    EquipmentID = Convert.ToInt32(reader["EquipmentID"]),
+                                    EquipmentName = reader["EquipmentName"].ToString(),
+                                    RequestedEndDate = Convert.ToDateTime(reader["RequestedEndDate"]),
+                                    UserEmail = reader["UserEmail"].ToString(),
+                                    UserFullName = reader["UserFullName"].ToString()
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Send reminder emails
+                int emailsSent = 0;
+                foreach (var reminderRequest in reminderUsers)
+                {
+                    if (SendReminderEmail(reminderRequest))
+                    {
+                        emailsSent++;
+                    }
+                }
+
+                
+                return Json(new { success = true, reminderCount = reminderUsers.Count, emailsSent = emailsSent });
+            }
+            catch (Exception ex)
+            {
+                
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        private bool SendOverdueEmail(OverdueRequest overdueRequest)
+        {
+            try
+            {
+                var smtpClient = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("auliahusna104@gmail.com", "dpkh ogsb jusc pvyf"),
+                    EnableSsl = true,
+                };
+
+                string body = $@"
+                    <html>
+                    <head>
+                        <style>
+                            body {{
+                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                line-height: 1.6;
+                                color: #333;
+                                max-width: 600px;
+                                margin: 0 auto;
+                                padding: 20px;
+                                background-color: #f9f9f9;
+                            }}
+                            .email-container {{
+                                background-color: white;
+                                border-radius: 8px;
+                                padding: 30px;
+                                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                            }}
+                            .header {{
+                                color: #e74c3c;
+                                border-bottom: 2px solid #e74c3c;
+                                padding-bottom: 10px;
+                                margin-bottom: 20px;
+                            }}
+                            .logo {{
+                                color: #e74c3c;
+                                font-weight: bold;
+                                font-size: 24px;
+                            }}
+                            .details {{
+                                background-color: #fff5f5;
+                                padding: 15px;
+                                border-radius: 5px;
+                                margin: 20px 0;
+                                border-left: 4px solid #e74c3c;
+                            }}
+                            .detail-item {{
+                                margin-bottom: 8px;
+                            }}
+                            .footer {{
+                                margin-top: 30px;
+                                font-size: 12px;
+                                color: #7f8c8d;
+                                text-align: center;
+                            }}
+                            .button {{
+                                display: inline-block;
+                                padding: 10px 20px;
+                                background-color: #e74c3c;
+                                color: white;
+                                text-decoration: none;
+                                border-radius: 5px;
+                                margin: 20px 0;
+                            }}
+                            .highlight {{
+                                font-weight: bold;
+                                color: #e74c3c;
+                            }}
+                            .urgent {{
+                                background-color: #ffebee;
+                                border: 1px solid #e74c3c;
+                                padding: 15px;
+                                border-radius: 5px;
+                                margin: 20px 0;
+                            }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class='email-container'>
+                            <div class='header'>
+                                <span class='logo'>⚠️ Invenion System</span>
+                                <h1>URGENT: Equipment Return Overdue</h1>
+                            </div>
+                            
+                            <div class='urgent'>
+                                <h3>IMMEDIATE ACTION REQUIRED</h3>
+                                <p>Your equipment borrowing request is now <span class='highlight'>OVERDUE</span>.</p>
+                            </div>
+                            
+                            <p>Dear <strong>{overdueRequest.UserFullName}</strong>,</p>
+                            
+                            <p>This is an urgent notification that your borrowed equipment has exceeded its return deadline.</p>
+                            
+                            <div class='details'>
+                                <h3>Overdue Equipment Details:</h3>
+                                <div class='detail-item'><strong>Equipment:</strong> {overdueRequest.EquipmentName}</div>
+                                <div class='detail-item'><strong>Request ID:</strong> {overdueRequest.RequestID}</div>
+                                <div class='detail-item'><strong>Original Return Date:</strong> {overdueRequest.RequestedEndDate:yyyy-MM-dd}</div>
+                                <div class='detail-item'><strong>Days Overdue:</strong> {(DateTime.Now - overdueRequest.RequestedEndDate).Days} days</div>
+                            </div>
+                            
+                            <p><strong>Please return the equipment immediately to avoid further penalties.</strong></p>
+                            
+                            <p>If you have already returned the equipment, please contact the administrator immediately to update the system.</p>
+                            
+                            <a href='http://localhost:5070/' class='button'>Login to Your Account</a>
+                        
+                            <div class='footer'>
+                                <p>Best regards,</p>
+                                <p><strong>Invenion Admin Team</strong></p>
+                                <p>© 2023 Invenion System. All rights reserved.</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                ";
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress("auliahusna104@gmail.com"),
+                    Subject = "🚨 URGENT: Equipment Return Overdue - Action Required",
+                    Body = body,
+                    IsBodyHtml = true,
+                };
+                mailMessage.To.Add(overdueRequest.UserEmail);
+
+                smtpClient.Send(mailMessage);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending overdue email to {overdueRequest.UserEmail}: {ex.Message}");
+                return false;
+            }
+        }
+
+        private bool SendReminderEmail(OverdueRequest reminderRequest)
+        {
+            try
+            {
+                var smtpClient = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("auliahusna104@gmail.com", "dpkh ogsb jusc pvyf"),
+                    EnableSsl = true,
+                };
+
+                string body = $@"
+                    <html>
+                    <head>
+                        <style>
+                            body {{
+                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                line-height: 1.6;
+                                color: #333;
+                                max-width: 600px;
+                                margin: 0 auto;
+                                padding: 20px;
+                                background-color: #f9f9f9;
+                            }}
+                            .email-container {{
+                                background-color: white;
+                                border-radius: 8px;
+                                padding: 30px;
+                                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                            }}
+                            .header {{
+                                color: #f39c12;
+                                border-bottom: 2px solid #f39c12;
+                                padding-bottom: 10px;
+                                margin-bottom: 20px;
+                            }}
+                            .logo {{
+                                color: #f39c12;
+                                font-weight: bold;
+                                font-size: 24px;
+                            }}
+                            .details {{
+                                background-color: #fffaf0;
+                                padding: 15px;
+                                border-radius: 5px;
+                                margin: 20px 0;
+                                border-left: 4px solid #f39c12;
+                            }}
+                            .detail-item {{
+                                margin-bottom: 8px;
+                            }}
+                            .footer {{
+                                margin-top: 30px;
+                                font-size: 12px;
+                                color: #7f8c8d;
+                                text-align: center;
+                            }}
+                            .button {{
+                                display: inline-block;
+                                padding: 10px 20px;
+                                background-color: #f39c12;
+                                color: white;
+                                text-decoration: none;
+                                border-radius: 5px;
+                                margin: 20px 0;
+                            }}
+                            .highlight {{
+                                font-weight: bold;
+                                color: #f39c12;
+                            }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class='email-container'>
+                            <div class='header'>
+                                <span class='logo'>🔔 Invenion System</span>
+                                <h1>Equipment Return Reminder</h1>
+                            </div>
+                            
+                            <p>Dear <strong>{reminderRequest.UserFullName}</strong>,</p>
+                            
+                            <p>This is a friendly reminder that your borrowed equipment is due for return <span class='highlight'>tomorrow</span>.</p>
+                            
+                            <div class='details'>
+                                <h3>Equipment Return Details:</h3>
+                                <div class='detail-item'><strong>Equipment:</strong> {reminderRequest.EquipmentName}</div>
+                                <div class='detail-item'><strong>Request ID:</strong> {reminderRequest.RequestID}</div>
+                                <div class='detail-item'><strong>Return Date:</strong> {reminderRequest.RequestedEndDate:yyyy-MM-dd}</div>
+                                <div class='detail-item'><strong>Time Remaining:</strong> Less than 24 hours</div>
+                            </div>
+                            
+                            <p>Please ensure you return the equipment on time to avoid it being marked as overdue.</p>
+                            
+                            <p>If you need an extension or have any issues, please contact the administrator as soon as possible.</p>
+                            
+                            <a href='http://localhost:5070/' class='button'>Login to Your Account</a>
+                        
+                            <div class='footer'>
+                                <p>Best regards,</p>
+                                <p><strong>Invenion Admin Team</strong></p>
+                                <p>© 2023 Invenion System. All rights reserved.</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                ";
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress("auliahusna104@gmail.com"),
+                    Subject = "🔔 Reminder: Equipment Return Due Tomorrow",
+                    Body = body,
+                    IsBodyHtml = true,
+                };
+                mailMessage.To.Add(reminderRequest.UserEmail);
+
+                smtpClient.Send(mailMessage);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending reminder email to {reminderRequest.UserEmail}: {ex.Message}");
+                return false;
+            }
+        }
 
         // Helper method to load available equipment for dropdown
         private void LoadAvailableEquipment()
@@ -636,14 +1015,14 @@ namespace Invenion.Controllers
             try
             {
                 List<Equipment> equipment = new List<Equipment>();
-                
+
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand("sp_GetAvailableEquipment", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         connection.Open();
-                        
+
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
