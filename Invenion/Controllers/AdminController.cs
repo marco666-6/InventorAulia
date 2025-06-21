@@ -703,8 +703,43 @@ namespace Invenion.Controllers
             return RedirectToAction("Users");
         }
 
+        // POST: Approve User RegistrationAdd commentMore actions
         [HttpPost]
+        public IActionResult ActivateUser(int userId)
+        {
+            var authCheck = CheckAuth();
+            if (authCheck != null) return RedirectToAction("Index", "Login");
 
+            try
+            {
+                int adminUserId = Convert.ToInt32(HttpContext.Session.GetString("UserID"));
+
+                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
+                {
+                    using (SqlCommand command = new SqlCommand("UPDATE Users SET IsActive = 1, ModifiedDate = GETDATE() WHERE UserID = @UserID; INSERT INTO Notifications (UserID, Title, Message, Type) VALUES (@UserID, 'Account Activated', 'Your account has been activated again and is now active.', 'Success');", connection))
+                    {
+                        command.CommandType = CommandType.Text;
+                        command.Parameters.AddWithValue("@UserID", userId);
+
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                        connection.Close();
+                    }
+                }
+
+                bool emailSent = SendActivateEmail(userId, adminUserId);
+
+                TempData["SuccessMessage"] = "User activated successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error activating account. Please try again.";
+            }
+
+            return RedirectToAction("Users");
+        }
+
+        [HttpPost]
         //untuk menghapus data user
         public IActionResult DeleteUser(int userId)
         {
