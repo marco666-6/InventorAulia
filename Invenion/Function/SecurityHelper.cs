@@ -37,12 +37,19 @@ namespace Invenion.Function
         /// <returns>Random token string</returns>
         public static string GenerateResetToken()
         {
-            byte[] tokenBytes = new byte[32];
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            byte[] randomBytes = new byte[32];
             using (var rng = RandomNumberGenerator.Create())
             {
-                rng.GetBytes(tokenBytes);
+                rng.GetBytes(randomBytes);
             }
-            return Convert.ToBase64String(tokenBytes);
+
+            char[] result = new char[32];
+            for (int i = 0; i < 32; i++)
+            {
+                result[i] = chars[randomBytes[i] % chars.Length]; //semuaa random yg udh dibuat,akan difilter berdasarkah chars
+            }
+            return new string(result);
         }
 
         /// <summary>
