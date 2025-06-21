@@ -43,11 +43,11 @@ namespace Invenion.Function
             {
                 rng.GetBytes(randomBytes);
             }
-            
+
             char[] result = new char[32];
             for (int i = 0; i < 32; i++)
             {
-                result[i] = chars[randomBytes[i] % chars.Length];
+                result[i] = chars[randomBytes[i] % chars.Length]; //semuaa random yg udh dibuat,akan difilter berdasarkah chars
             }
             return new string(result);
         }
