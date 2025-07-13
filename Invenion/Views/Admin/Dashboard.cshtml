@@ -63,9 +63,9 @@
         </div>
     </div>
 
-    <!-- Quick Actions & Notifications Row -->
+    <!-- Quick Actions Row (Full Width) -->
     <div class="row g-4 mb-4">
-        <div class="col-lg-8">
+        <div class="col-12">
             <!-- Quick Actions -->
             <div class="card">
                 <div class="card-header">
@@ -98,28 +98,6 @@
                             <span>Generate Reports</span>
                         </a>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <!-- System Status -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">System Status</h5>
-                </div>
-                <div class="card-body">
-                    
-                    <div class="status-item">
-                        <div class="status-dot bg-warning"></div>
-                        <span>@Model.PendingRequests Pending Requests</span>
-                    </div>
-                    @if (Model.PendingRegistrations > 0)
-                    {
-                        <div class="status-item">
-                            <div class="status-dot bg-info"></div>
-                            <span>@Model.PendingRegistrations New Registrations</span>
-                        </div>
-                    }
                 </div>
             </div>
         </div>
@@ -212,9 +190,9 @@
         transition: transform 0.2s;
     }
 
-    .stats-card:hover {
-        transform: translateY(-2px);
-    }
+        .stats-card:hover {
+            transform: translateY(-2px);
+        }
 
     .stats-icon {
         width: 60px;
@@ -226,10 +204,10 @@
         margin-right: 20px;
     }
 
-    .stats-icon i {
-        font-size: 24px;
-        color: white;
-    }
+        .stats-icon i {
+            font-size: 24px;
+            color: white;
+        }
 
     .stats-info h3 {
         font-size: 1.8rem;
@@ -245,10 +223,21 @@
         font-size: 0.8rem;
     }
 
-    .bg-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .bg-success { background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); }
-    .bg-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    .bg-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .bg-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .bg-success {
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    }
+
+    .bg-warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .bg-info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
 
     .card {
         background: white;
@@ -269,13 +258,14 @@
 
     .quick-actions {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(4, 1fr);
         gap: 15px;
     }
 
     .quick-action-btn {
         display: flex;
         align-items: center;
+        justify-content: center;
         padding: 15px 20px;
         background: #f8f9fa;
         border-radius: 8px;
@@ -283,48 +273,36 @@
         color: #495057;
         transition: all 0.2s;
         position: relative;
+        text-align: center;
     }
 
-    .quick-action-btn:hover {
-        background: #e9ecef;
-        color: #495057;
-        transform: translateY(-1px);
-    }
+        .quick-action-btn:hover {
+            background: #e9ecef;
+            color: #495057;
+            transform: translateY(-1px);
+        }
 
-    .quick-action-btn i {
-        font-size: 20px;
-        margin-right: 10px;
+        .quick-action-btn i {
+            font-size: 20px;
+            margin-right: 10px;
             color: #006A4E;
-    }
+        }
 
-    .quick-action-btn .badge {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        font-size: 0.7rem;
-    }
-
-    .status-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 10px;
-    }
+        .quick-action-btn .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.7rem;
+        }
 
     .summary-item {
         padding: 15px 0;
         border-bottom: 1px solid #eee;
     }
 
-    .summary-item:last-child {
-        border-bottom: none;
-    }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
 
     .summary-label {
         font-size: 0.9rem;
@@ -342,12 +320,26 @@
         font-size: 0.8rem;
         color: #6c757d;
     }
+
     .highcharts-background {
         fill: transparent !important;
     }
 
     .highcharts-button-box {
         fill: transparent !important;
+    }
+
+    /* Responsive adjustments for smaller screens */
+    @@media (max-width: 768px) {
+        .quick-actions {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -384,7 +376,7 @@
             });
             document.getElementById('currentTime').textContent = timeString;
         }
-        
+
         updateTime();
         setInterval(updateTime, 60000); // Update every minute
 
@@ -402,7 +394,6 @@
                 shared: true,
                 useHTML: true,
                 style: {
-                    color: '#FFFFFF', // Change this to a color that contrasts with the background
                     fontSize: '12px' // Optional: adjust font size
                 }
             },

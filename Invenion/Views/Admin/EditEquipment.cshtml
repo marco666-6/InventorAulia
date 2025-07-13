@@ -82,17 +82,11 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                <label asp-for="Model" class="form-label">Model</label>
-                                <input asp-for="Model" class="form-control" placeholder="Enter model" />
-                                <span asp-validation-for="Model" class="text-danger"></span>
+                                <label asp-for="SerialNumber" class="form-label">Serial Number</label>
+                                <input asp-for="SerialNumber" class="form-control" placeholder="Enter serial number" />
+                                <span asp-validation-for="SerialNumber" class="text-danger"></span>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label asp-for="SerialNumber" class="form-label">Serial Number</label>
-                        <input asp-for="SerialNumber" class="form-control" placeholder="Enter serial number" />
-                        <span asp-validation-for="SerialNumber" class="text-danger"></span>
                     </div>
 
                     <div class="form-group mb-3">
@@ -239,26 +233,26 @@
         // Show success/error messages
         @if (TempData["SuccessMessage"] != null)
         {
-                    <text>
-                    Swal.fire({
-                        title: 'Success!',
-                        text: '@TempData["SuccessMessage"]',
-                        icon: 'success',
-                        confirmButtonColor: '#006A4E'
-                    });
-                    </text>
+                        <text>
+                        Swal.fire({
+                            title: 'Success!',
+                            text: '@TempData["SuccessMessage"]',
+                            icon: 'success',
+                            confirmButtonColor: '#006A4E'
+                        });
+                        </text>
         }
 
         @if (TempData["ErrorMessage"] != null)
         {
-                    <text>
-                    Swal.fire({
-                        title: 'Error!',
-                        text: '@TempData["ErrorMessage"]',
-                        icon: 'error',
-                        confirmButtonColor: '#006A4E'
-                    });
-                    </text>
+                        <text>
+                        Swal.fire({
+                            title: 'Error!',
+                            text: '@TempData["ErrorMessage"]',
+                            icon: 'error',
+                            confirmButtonColor: '#006A4E'
+                        });
+                        </text>
         }
     </script>
 }

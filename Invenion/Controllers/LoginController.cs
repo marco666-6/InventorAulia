@@ -151,6 +151,7 @@ namespace Invenion.Controllers
                     }
                 }
             }
+            //menangani kesalahan SQL (duplikat email/username)
             catch (SqlException ex)
             {
                 Console.WriteLine($"SQL EXCEPTION caught: {ex.Message}");
@@ -432,12 +433,13 @@ namespace Invenion.Controllers
         // GET: ResetPassword
         public IActionResult ResetPassword(string token)
         {
+            //kalau kosong kedetek 
             if (string.IsNullOrEmpty(token))
             {
                 return RedirectToAction("Index");
             }
 
-            // Verify token exists and is not expired
+            // Verify token ada dan tidak expire
             using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
             {
                 using (SqlCommand command = new SqlCommand(

@@ -78,6 +78,7 @@ namespace Invenion.Controllers
         }
 
         // Also add an AJAX endpoint to get notification count
+        // (jumlah notifikasi yang belum dibaca)
         [HttpGet]
         public IActionResult GetNotificationCount()
         {
@@ -93,7 +94,7 @@ namespace Invenion.Controllers
         {
             var authCheck = CheckAuth();
             if (authCheck != null) return authCheck;
-
+            // menampilkan atau menghitung jumlah notifikasi
             SetNotificationCount(); // Add this line
 
 
@@ -129,7 +130,7 @@ namespace Invenion.Controllers
                             if (reader.Read())
                             {
                                 stats = new
-                                {
+                                {   //konversi ke int
                                     ActiveRequests = Convert.ToInt32(reader["ActiveRequests"]),
                                     PendingRequests = Convert.ToInt32(reader["PendingRequests"]),
                                     CompletedRequests = Convert.ToInt32(reader["CompletedRequests"]),
@@ -161,7 +162,7 @@ namespace Invenion.Controllers
                 List<Equipment> availableEquipment = new List<Equipment>();
                 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
-                {
+                {                                               // menjalankan perintah di storepro
                     using (SqlCommand command = new SqlCommand("sp_GetAvailableEquipment", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
@@ -177,7 +178,6 @@ namespace Invenion.Controllers
                                     EquipmentCode = reader["EquipmentCode"].ToString(),
                                     EquipmentName = reader["EquipmentName"].ToString(),
                                     Brand = reader["Brand"]?.ToString(),
-                                    Model = reader["Model"]?.ToString(),
                                     CategoryName = reader["CategoryName"].ToString()
                                 });
                             }
@@ -221,6 +221,7 @@ namespace Invenion.Controllers
             try
             {
                 // validate dates
+                //tanggal mulai tidak di masa lalu dan tanggal akhir hrs stelah tanggal mulai
                 if (model.RequestedStartDate < DateTime.Today)
                 {
                     ModelState.AddModelError("RequestedStartDate", "Start date cannot be in the past.");
@@ -240,7 +241,7 @@ namespace Invenion.Controllers
                 int userId = Convert.ToInt32(HttpContext.Session.GetString("UserID"));
                 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
-                {
+                {   //menjalankan storepro untuk simpan request peminjaman
                     using (SqlCommand command = new SqlCommand("sp_SubmitBorrowingRequest", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
@@ -279,7 +280,8 @@ namespace Invenion.Controllers
             try
             {
                 int userId = Convert.ToInt32(HttpContext.Session.GetString("UserID"));
-                List<BorrowingRequest> myRequests = new List<BorrowingRequest>();
+                //buat list kosong untuk menampung smua permintaan peminjaman 
+                List<BorrowingRequest> myRequests = new List<BorrowingRequest>(); 
                 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
@@ -303,13 +305,11 @@ namespace Invenion.Controllers
                                     Status = reader["Status"].ToString(),
                                     ApprovedDate = reader["ApprovedDate"] as DateTime?,
                                     RejectionReason = reader["RejectionReason"]?.ToString(),
-                                    ActualStartDate = reader["ActualStartDate"] as DateTime?,
                                     ActualEndDate = reader["ActualEndDate"] as DateTime?,
                                     ReturnCondition = reader["ReturnCondition"]?.ToString(),
                                     EquipmentCode = reader["EquipmentCode"].ToString(),
                                     EquipmentName = reader["EquipmentName"].ToString(),
                                     Brand = reader["Brand"]?.ToString(),
-                                    Model = reader["Model"]?.ToString(),
                                     ApprovedByName = reader["ApprovedByName"]?.ToString()
                                 });
                             }
@@ -340,7 +340,7 @@ namespace Invenion.Controllers
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
                     using (SqlCommand command = new SqlCommand(@"
-                        SELECT br.*, e.EquipmentCode, e.EquipmentName, e.Brand, e.Model, 
+                        SELECT br.*, e.EquipmentCode, e.EquipmentName, e.Brand, 
                                approver.FullName as ApprovedByName
                         FROM BorrowingRequests br
                         INNER JOIN Equipment e ON br.EquipmentID = e.EquipmentID
@@ -365,14 +365,12 @@ namespace Invenion.Controllers
                                     Status = reader["Status"].ToString(),
                                     ApprovedDate = reader["ApprovedDate"] as DateTime?,
                                     RejectionReason = reader["RejectionReason"]?.ToString(),
-                                    ActualStartDate = reader["ActualStartDate"] as DateTime?,
                                     ActualEndDate = reader["ActualEndDate"] as DateTime?,
                                     ReturnCondition = reader["ReturnCondition"]?.ToString(),
                                     Notes = reader["Notes"]?.ToString(),
                                     EquipmentCode = reader["EquipmentCode"].ToString(),
                                     EquipmentName = reader["EquipmentName"].ToString(),
                                     Brand = reader["Brand"]?.ToString(),
-                                    Model = reader["Model"]?.ToString(),
                                     ApprovedByName = reader["ApprovedByName"]?.ToString()
                                 };
                             }
@@ -414,7 +412,7 @@ namespace Invenion.Controllers
             if (authCheck != null) return authCheck;
 
             try
-            {
+            { //validasi
                 if (!ModelState.IsValid)
                 {
                     return View(model);
@@ -531,7 +529,7 @@ namespace Invenion.Controllers
                     using (SqlCommand command = new SqlCommand("sp_GetUserNotifications", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
-                        command.Parameters.AddWithValue("@UserID", userId);
+                        command.Parameters.AddWithValue("@UserID", userId); //filter notifikasi yang ditampilkan hanya milik user tersebut
                         command.Parameters.AddWithValue("@Top", 50); // Get last 50 notifications
                         connection.Open();
                         
@@ -578,7 +576,7 @@ namespace Invenion.Controllers
                         command.CommandType = CommandType.StoredProcedure;
                         command.Parameters.AddWithValue("@NotificationID", notificationId);
                         connection.Open();
-                        command.ExecuteNonQuery();
+                        command.ExecuteNonQuery(); //karena tidak mengembalikan data
                     }
                 }
 
@@ -590,7 +588,7 @@ namespace Invenion.Controllers
             }
         }
 
-        // POST: Cancel Request (only for pending requests)
+        // POST: Cancel Request (jika statusnya masih pending)
         [HttpPost]
         public IActionResult CancelRequest(int requestId)
         {
@@ -598,7 +596,7 @@ namespace Invenion.Controllers
             if (authCheck != null) return RedirectToAction("Index", "Login");
 
             try
-            {
+            {   
                 int userId = Convert.ToInt32(HttpContext.Session.GetString("UserID"));
                 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
@@ -1011,6 +1009,7 @@ namespace Invenion.Controllers
         }
 
         // Helper method to load available equipment for dropdown
+        // ambil data peralatan yang masih tersedia
         private void LoadAvailableEquipment()
         {
             try
@@ -1023,7 +1022,7 @@ namespace Invenion.Controllers
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         connection.Open();
-
+                        //eksekusi perintah storepro dan baca hasil sqldatareader
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -1034,14 +1033,13 @@ namespace Invenion.Controllers
                                     EquipmentCode = reader["EquipmentCode"].ToString(),
                                     EquipmentName = reader["EquipmentName"].ToString(),
                                     Brand = reader["Brand"]?.ToString(),
-                                    Model = reader["Model"]?.ToString(),
                                     CategoryName = reader["CategoryName"].ToString()
                                 });
                             }
                         }
                     }
                 }
-
+                //simpan seluruh list peralatan ke viewbag
                 ViewBag.AvailableEquipment = equipment;
             }
             catch (Exception ex)

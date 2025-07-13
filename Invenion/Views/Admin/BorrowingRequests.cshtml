@@ -68,7 +68,7 @@
                                         <small class="text-muted d-block">@request.EquipmentName</small>
                                         @if (!string.IsNullOrEmpty(request.Brand))
                                         {
-                                            <small class="text-muted">@request.Brand @request.Model</small>
+                                            <small class="text-muted">@request.Brand</small>
                                         }
                                     </div>
                                 </td>
@@ -115,7 +115,7 @@
                                 <td>
                                     <div class="btn-group btn-group-sm">
                                         <button class="btn btn-outline-primary" onclick="viewDetails(@request.RequestID, '@request.Purpose', '@request.RequesterName', '@request.EquipmentName', '@request.RequestedStartDate.ToString("yyyy-MM-dd")', '@request.RequestedEndDate.ToString("yyyy-MM-dd")', '@request.Status', '@(request.RejectionReason ?? "")', '@(request.ReturnCondition ?? "")')">
-                                            <i class='bx bx-eye'></i>
+                                            <i class='bx bx-info-circle'></i>
                                         </button>
 
                                         @if (request.Status == "Pending")

@@ -16,6 +16,7 @@ using Invenion.Models;
 //penghubung antara aplikasi dan database
 namespace Invenion.Function
 {
+    //untuk koneksi ke database
     public class DatabaseAccessLayer
     {
         private readonly string connectionString;

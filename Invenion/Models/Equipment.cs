@@ -10,7 +10,8 @@ namespace Invenion.Models
         [Required(ErrorMessage = "Equipment code is required")]
         [StringLength(50, ErrorMessage = "Equipment code cannot exceed 50 characters")]
         public string? EquipmentCode { get; set; }
-        
+        public string? Stock { get; set; }
+
         [Required(ErrorMessage = "Equipment name is required")]
         [StringLength(100, ErrorMessage = "Equipment name cannot exceed 100 characters")]
         public string? EquipmentName { get; set; }
@@ -20,9 +21,6 @@ namespace Invenion.Models
         
         [StringLength(50, ErrorMessage = "Brand cannot exceed 50 characters")]
         public string? Brand { get; set; }
-        
-        [StringLength(50, ErrorMessage = "Model cannot exceed 50 characters")]
-        public string? Model { get; set; }
         
         [StringLength(100, ErrorMessage = "Serial number cannot exceed 100 characters")]
         public string? SerialNumber { get; set; }
@@ -36,7 +34,6 @@ namespace Invenion.Models
         public DateTime? PurchaseDate { get; set; }
         
         [DataType(DataType.Date)]
-        public DateTime? WarrantyExpiry { get; set; }
         
         public bool IsActive { get; set; } = true;
         public DateTime CreatedDate { get; set; } = DateTime.Now;

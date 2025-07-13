@@ -43,25 +43,27 @@ namespace Invenion.Controllers
 
         // GET: Admin Dashboard
         public IActionResult Dashboard()
-        {
-            var authCheck = CheckAuth();
+        {     
+            var authCheck = CheckAuth(); //verifikasi izin akses
             if (authCheck != null) return authCheck;
 
             try
             {
                 DashboardStats stats = new DashboardStats();
 
-                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
-                {
+                //perintah untuk koneksi ke database (storpro)
+                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString())) 
+                {          //untuk jalanin query ke database     -milih ini- 
                     using (SqlCommand command = new SqlCommand("sp_GetDashboardStats", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         connection.Open();
-
+                         
+                               //yg jalanain storepro         //baca baris hasil query
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             if (reader.Read())
-                            {
+                            {                          //untuk ubah nilai ket jadi angka
                                 stats.TotalEquipment = Convert.ToInt32(reader["TotalEquipment"]);
                                 stats.AvailableEquipment = Convert.ToInt32(reader["AvailableEquipment"]);
                                 stats.MaintenancedEquipment = Convert.ToInt32(reader["MaintenancedEquipment"]);
@@ -76,6 +78,7 @@ namespace Invenion.Controllers
 
                 return View(stats);
             }
+            //kalau terjadi error
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Error loading dashboard data.";
@@ -84,17 +87,19 @@ namespace Invenion.Controllers
         }
 
         // GET: Equipment Management
+
+        //ini yang manggil view
         public IActionResult Equipment()
         {
-            var authCheck = CheckAuth();
+            var authCheck = CheckAuth();           //dua kode ini untuk verifikasi sblm masuk
             if (authCheck != null) return authCheck;
 
             try
             {
                 List<Equipment> equipmentList = new List<Equipment>();
-
+                //untuk koneksi ke database
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
-                {
+                {          //untuk jalanin query ke database     -milih ini- 
                     using (SqlCommand command = new SqlCommand("sp_GetAllEquipment", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
@@ -108,14 +113,13 @@ namespace Invenion.Controllers
                                 {
                                     EquipmentID = Convert.ToInt32(reader["EquipmentID"]),
                                     EquipmentCode = reader["EquipmentCode"].ToString(),
+                                    Stock = reader["Stock"].ToString(),
                                     EquipmentName = reader["EquipmentName"].ToString(),
                                     Brand = reader["Brand"]?.ToString(),
-                                    Model = reader["Model"]?.ToString(),
                                     SerialNumber = reader["SerialNumber"]?.ToString(),
                                     Description = reader["Description"]?.ToString(),
                                     Status = reader["Status"].ToString(),
                                     PurchaseDate = reader["PurchaseDate"] as DateTime?,
-                                    WarrantyExpiry = reader["WarrantyExpiry"] as DateTime?,
                                     CategoryName = reader["CategoryName"].ToString()
                                 });
                             }
@@ -150,7 +154,7 @@ namespace Invenion.Controllers
                         command.Parameters.AddWithValue("@id", id); // Add parameter to prevent SQL injection
                         connection.Open();
 
-                        rowsAffected0 = command.ExecuteNonQuery(); // Execute the command
+                        rowsAffected0 = command.ExecuteNonQuery(); // menjalankan perintah delete
                         connection.Close();
                     }
 
@@ -160,7 +164,7 @@ namespace Invenion.Controllers
                         command.Parameters.AddWithValue("@id", id); // Add parameter to prevent SQL injection
                         connection.Open();
 
-                        rowsAffected0 += command.ExecuteNonQuery(); // Execute the command
+                        rowsAffected0 += command.ExecuteNonQuery(); // menjalankan perintah delete di tabel equipment
                         connection.Close();
                     }
 
@@ -208,22 +212,20 @@ namespace Invenion.Controllers
                 }
 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
-                {
-                    using (SqlCommand command = new SqlCommand("sp_AddEquipment", connection))
+                {                                               //manggil storepro
+                    using (SqlCommand command = new SqlCommand("sp_AddEquipment", connection)) 
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         command.Parameters.AddWithValue("@EquipmentCode", Item.EquipmentCode);
                         command.Parameters.AddWithValue("@EquipmentName", Item.EquipmentName);
                         command.Parameters.AddWithValue("@CategoryID", Item.CategoryID);
                         command.Parameters.AddWithValue("@Brand", Item.Brand ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@Model", Item.Model ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("@SerialNumber", Item.SerialNumber ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("@Description", Item.Description ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("@PurchaseDate", Item.PurchaseDate ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@WarrantyExpiry", Item.WarrantyExpiry ?? (object)DBNull.Value);
 
                         connection.Open();
-                        var result = command.ExecuteScalar();
+                        var result = command.ExecuteScalar(); //menjalankan storepro
 
                         if (result != null)
                         {
@@ -262,7 +264,7 @@ namespace Invenion.Controllers
         }
 
         // GET: Edit Equipment
-        public IActionResult EditEquipment(int id)
+        public IActionResult EditEquipment(int id) //method u buka halaman edit
         {
             var authCheck = CheckAuth();
             if (authCheck != null) return authCheck;
@@ -292,12 +294,10 @@ namespace Invenion.Controllers
                                     EquipmentName = reader["EquipmentName"].ToString(),
                                     CategoryID = Convert.ToInt32(reader["CategoryID"]),
                                     Brand = reader["Brand"]?.ToString(),
-                                    Model = reader["Model"]?.ToString(),
                                     SerialNumber = reader["SerialNumber"]?.ToString(),
                                     Description = reader["Description"]?.ToString(),
                                     Status = reader["Status"].ToString(),
                                     PurchaseDate = reader["PurchaseDate"] as DateTime?,
-                                    WarrantyExpiry = reader["WarrantyExpiry"] as DateTime?
                                 };
                             }
                         }
@@ -338,7 +338,7 @@ namespace Invenion.Controllers
 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {
-                    using (SqlCommand command = new SqlCommand("sp_UpdateEquipment", connection))
+                    using (SqlCommand command = new SqlCommand("sp_UpdateEquipment", connection)) // manggil storepro
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         command.Parameters.AddWithValue("@EquipmentID", item.EquipmentID);
@@ -346,12 +346,10 @@ namespace Invenion.Controllers
                         command.Parameters.AddWithValue("@EquipmentName", item.EquipmentName);
                         command.Parameters.AddWithValue("@CategoryID", item.CategoryID);
                         command.Parameters.AddWithValue("@Brand", item.Brand ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@Model", item.Model ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("@SerialNumber", item.SerialNumber ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("@Description", item.Description ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("@Status", item.Status);
                         command.Parameters.AddWithValue("@PurchaseDate", item.PurchaseDate ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@WarrantyExpiry", item.WarrantyExpiry ?? (object)DBNull.Value);
 
                         connection.Open();
                         command.ExecuteNonQuery();
@@ -400,13 +398,11 @@ namespace Invenion.Controllers
                                     Status = reader["Status"].ToString(),
                                     ApprovedDate = reader["ApprovedDate"] as DateTime?,
                                     RejectionReason = reader["RejectionReason"]?.ToString(),
-                                    ActualStartDate = reader["ActualStartDate"] as DateTime?,
                                     ActualEndDate = reader["ActualEndDate"] as DateTime?,
                                     ReturnCondition = reader["ReturnCondition"]?.ToString(),
                                     EquipmentCode = reader["EquipmentCode"].ToString(),
                                     EquipmentName = reader["EquipmentName"].ToString(),
                                     Brand = reader["Brand"]?.ToString(),
-                                    Model = reader["Model"]?.ToString(),
                                     RequesterName = reader["RequesterName"].ToString(),
                                     Department = reader["Department"]?.ToString(),
                                     ApprovedByName = reader["ApprovedByName"]?.ToString()
@@ -978,7 +974,7 @@ namespace Invenion.Controllers
                 List<BorrowingRequest> reportData = new List<BorrowingRequest>();
 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
-                {
+                {                                           //menjalankan storeprosedur
                     using (SqlCommand command = new SqlCommand("sp_GetBorrowingReport", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
@@ -990,7 +986,7 @@ namespace Invenion.Controllers
 
                         connection.Open();
                         using (SqlDataReader reader = command.ExecuteReader())
-                        {
+                        {   //perulangan saat membaca database
                             while (reader.Read())
                             {
                                 reportData.Add(new BorrowingRequest
@@ -999,14 +995,12 @@ namespace Invenion.Controllers
                                     RequestDate = Convert.ToDateTime(reader["RequestDate"]),
                                     RequestedStartDate = Convert.ToDateTime(reader["RequestedStartDate"]),
                                     RequestedEndDate = Convert.ToDateTime(reader["RequestedEndDate"]),
-                                    ActualStartDate = reader["ActualStartDate"] as DateTime?,
                                     ActualEndDate = reader["ActualEndDate"] as DateTime?,
                                     Status = reader["Status"].ToString(),
                                     Purpose = reader["Purpose"].ToString(),
                                     EquipmentCode = reader["EquipmentCode"].ToString(),
                                     EquipmentName = reader["EquipmentName"].ToString(),
                                     Brand = reader["Brand"]?.ToString(),
-                                    Model = reader["Model"]?.ToString(),
                                     RequesterName = reader["RequesterName"].ToString(),
                                     Department = reader["Department"]?.ToString(),
                                     ApprovedByName = reader["ApprovedByName"]?.ToString(),
@@ -1016,7 +1010,7 @@ namespace Invenion.Controllers
                         }
                     }
                 }
-
+                //ngirim data dari controller ke view
                 ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
                 ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
 
@@ -1067,6 +1061,7 @@ namespace Invenion.Controllers
         }
 
         // GET: Get Categories for AJAX
+        // halaman tambah kategori barang
         [HttpGet]
         public IActionResult GetCategories()
         {
@@ -1078,7 +1073,7 @@ namespace Invenion.Controllers
                 List<EquipmentCategory> categories = new List<EquipmentCategory>();
 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
-                {
+                {                                               
                     using (SqlCommand command = new SqlCommand("sp_GetEquipmentCategories", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
@@ -1188,7 +1183,7 @@ namespace Invenion.Controllers
                 }
             }
             catch (SqlException ex)
-            {
+            { //tangkap error sql  (duplikasi nama kategori)
                 if (ex.Message.Contains("CategoryName"))
                 {
                     return Json(new { success = false, message = "Category name already exists." });
@@ -1403,6 +1398,7 @@ namespace Invenion.Controllers
         }
 
         // Add these methods to your controller
+        // menjalankan storepro update overduerequest
         [HttpGet]
         public IActionResult ProcessOverdueRequests()
         {
@@ -1440,7 +1436,7 @@ namespace Invenion.Controllers
                 }
 
                 // Send emails to all overdue users
-                int emailsSent = 0;
+                int emailsSent = 0;  //counter u hitung email berhasil dikirim 
                 foreach (var overdueRequest in overdueUsers)
                 {
                     if (SendOverdueEmail(overdueRequest))
@@ -1460,13 +1456,14 @@ namespace Invenion.Controllers
         }
 
         [HttpGet]
+        //u mengirim pengingat ke user yg blm mengembalikan barang 
         public IActionResult ProcessOverdueReminders()
         {
             var authCheck = CheckAuth();
             if (authCheck != null) return authCheck;
 
             try
-            {
+            {   //list u simpan data yg blm kembalikan barang 
                 var reminderUsers = new List<OverdueRequest>();
 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
@@ -2192,7 +2189,8 @@ namespace Invenion.Controllers
                         adminName = result?.ToString() ?? "Administrator";
                     }
                     
-                    // HTML email body
+                    // HTML email body 
+                    // Email pemberitahuan penghapusan akun
                     string body = $@"
                         <html>
                         <head>

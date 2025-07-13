@@ -100,15 +100,6 @@
                                 </div>
                             </div>
                         }
-                        @if (!string.IsNullOrEmpty(Model.Model))
-                        {
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label class="info-label">Model</label>
-                                    <div class="info-value">@Model.Model</div>
-                                </div>
-                            </div>
-                        }
                     </div>
                 </div>
             </div>
@@ -139,15 +130,6 @@
                                     <div class="info-item">
                                         <label class="info-label">Approved By</label>
                                         <div class="info-value">@Model.ApprovedByName</div>
-                                    </div>
-                                </div>
-                            }
-                            @if (Model.ActualStartDate.HasValue)
-                            {
-                                <div class="col-md-6">
-                                    <div class="info-item">
-                                        <label class="info-label">Actual Start Date</label>
-                                        <div class="info-value">@Model.ActualStartDate.Value.ToString("MMMM dd, yyyy")</div>
                                     </div>
                                 </div>
                             }

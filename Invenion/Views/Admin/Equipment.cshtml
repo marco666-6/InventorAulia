@@ -85,6 +85,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Code</th>
+                                <th>Stock</th>
                                 <th>Equipment Name</th>
                                 <th>Category</th>
                                 <th>Brand/Model</th>
@@ -102,6 +103,9 @@
                                         <span class="equipment-code">@equipment.EquipmentCode</span>
                                     </td>
                                     <td>
+                                        <span class="equipment-stock">@equipment.Stock</span>
+                                    </td>
+                                    <td>
                                         <div class="equipment-info">
                                             <strong>@equipment.EquipmentName</strong>
                                             @if (!string.IsNullOrEmpty(equipment.Description))
@@ -114,16 +118,12 @@
                                         <span class="badge bg-light text-dark">@equipment.CategoryName</span>
                                     </td>
                                     <td>
-                                        @if (!string.IsNullOrEmpty(equipment.Brand) || !string.IsNullOrEmpty(equipment.Model))
+                                        @if (!string.IsNullOrEmpty(equipment.Brand))
                                         {
                                             <div class="brand-model">
                                                 @if (!string.IsNullOrEmpty(equipment.Brand))
                                                 {
                                                     <strong>@equipment.Brand</strong>
-                                                }
-                                                @if (!string.IsNullOrEmpty(equipment.Model))
-                                                {
-                                                    <small class="text-muted d-block">@equipment.Model</small>
                                                 }
                                             </div>
                                         }

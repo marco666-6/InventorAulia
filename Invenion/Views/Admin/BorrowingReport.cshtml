@@ -143,7 +143,7 @@
                                             <small class="text-muted">@request.EquipmentCode</small>
                                             @if (!string.IsNullOrEmpty(request.Brand))
                                             {
-                                                <small class="text-muted">- @request.Brand @request.Model</small>
+                                                <small class="text-muted">- @request.Brand</small>
                                             }
                                         </div>
                                     </td>
@@ -155,14 +155,6 @@
                                             @request.RequestedStartDate.ToString("MMM dd") -
                                             @request.RequestedEndDate.ToString("MMM dd, yyyy")
                                         </small>
-                                        @if (request.ActualStartDate.HasValue && request.ActualEndDate.HasValue)
-                                        {
-                                            <br>
-                                            <small class="text-success">
-                                                Actual: @request.ActualStartDate.Value.ToString("MMM dd") -
-                                                @request.ActualEndDate.Value.ToString("MMM dd, yyyy")
-                                            </small>
-                                        }
                                     </td>
                                     <td>
                                         @switch (request.Status)

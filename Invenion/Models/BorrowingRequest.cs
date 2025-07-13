@@ -28,6 +28,7 @@ namespace Invenion.Models
         [Required(ErrorMessage = "Purpose is required")]
         [StringLength(500, ErrorMessage = "Purpose cannot exceed 500 characters")]
         public string? Purpose { get; set; }
+        public string? Stock { get; set; }
         
         public string Status { get; set; } = "Pending";
         
@@ -36,9 +37,6 @@ namespace Invenion.Models
         
         [StringLength(500, ErrorMessage = "Rejection reason cannot exceed 500 characters")]
         public string? RejectionReason { get; set; }
-        
-        [DataType(DataType.Date)]
-        public DateTime? ActualStartDate { get; set; }
         
         [DataType(DataType.Date)]
         public DateTime? ActualEndDate { get; set; }
@@ -57,7 +55,6 @@ namespace Invenion.Models
         public string? EquipmentCode { get; set; }
         public string? EquipmentName { get; set; }
         public string? Brand { get; set; }
-        public string? Model { get; set; }
         public string? RequesterName { get; set; }
         public string? Department { get; set; }
         public string? ApprovedByName { get; set; }

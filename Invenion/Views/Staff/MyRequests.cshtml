@@ -47,10 +47,6 @@
                                         <div class="equipment-info">
                                             <div class="fw-semibold">@request.EquipmentName</div>
                                             <small class="text-muted">@request.EquipmentCode</small>
-                                            @if (!string.IsNullOrEmpty(request.Brand))
-                                            {
-                                                <small class="text-muted">- @request.Brand @request.Model</small>
-                                            }
                                         </div>
                                     </td>
                                     <td>@request.RequestDate.ToString("MMM dd, yyyy")</td>
