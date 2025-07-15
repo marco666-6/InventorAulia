@@ -120,16 +120,16 @@
 
                                         @if (request.Status == "Pending")
                                         {
-                                            <button class="btn btn-outline-success" onclick="approveRequest(@request.RequestID)">
+                                            <button class="btn btn-outline-success" onclick="approveRequest(@request.RequestID, '@request.RequesterName', '@request.EquipmentName', '@request.RequestedStartDate.ToString("MMM dd, yyyy")', '@request.RequestedEndDate.ToString("MMM dd, yyyy")')">
                                                 <i class='bx bx-check'></i>
                                             </button>
-                                            <button class="btn btn-outline-danger" onclick="rejectRequest(@request.RequestID)">
+                                            <button class="btn btn-outline-danger" onclick="rejectRequest(@request.RequestID, '@request.RequesterName', '@request.EquipmentName', '@request.RequestedStartDate.ToString("MMM dd, yyyy")', '@request.RequestedEndDate.ToString("MMM dd, yyyy")')">
                                                 <i class='bx bx-x'></i>
                                             </button>
                                         }
                                         else if (request.Status == "Approved" || request.Status == "Borrowed" || request.Status == "Overdue")
                                         {
-                                            <button class="btn btn-outline-info" onclick="returnEquipment(@request.RequestID)">
+                                            <button class="btn btn-outline-info" onclick="returnEquipment(@request.RequestID, '@request.RequesterName', '@request.EquipmentName', '@request.RequestedStartDate.ToString("MMM dd, yyyy")', '@request.RequestedEndDate.ToString("MMM dd, yyyy")')">
                                                 <i class='bx bx-undo'></i>
                                             </button>
                                         }
@@ -320,10 +320,22 @@
             });
         }
 
-        function approveRequest(requestId) {
+        // Just replace the existing functions with these - they pass the data directly from the button click
+
+        function approveRequest(requestId, requesterName, equipmentName, startDate, endDate) {
+            const detailsHtml = `
+                <div style="text-align: left; margin-bottom: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <p><strong>Request ID:</strong> #${requestId}</p>
+                    <p><strong>Requester:</strong> ${requesterName}</p>
+                    <p><strong>Equipment:</strong> ${equipmentName}</p>
+                    <p><strong>Period:</strong> ${startDate} to ${endDate}</p>
+                </div>
+                <p>Are you sure you want to approve this request?</p>
+            `;
+
             Swal.fire({
-                title: 'Approve Request?',
-                text: 'Are you sure you want to approve this borrowing request?',
+                title: 'Approve Request',
+                html: detailsHtml,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
@@ -364,10 +376,20 @@
             });
         }
 
-        function rejectRequest(requestId) {
+        function rejectRequest(requestId, requesterName, equipmentName, startDate, endDate) {
+            const detailsHtml = `
+                <div style="text-align: left; margin-bottom: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <p><strong>Request ID:</strong> #${requestId}</p>
+                    <p><strong>Requester:</strong> ${requesterName}</p>
+                    <p><strong>Equipment:</strong> ${equipmentName}</p>
+                    <p><strong>Period:</strong> ${startDate} to ${endDate}</p>
+                </div>
+                <p>Please provide a reason for rejection:</p>
+            `;
+
             Swal.fire({
-                title: 'Reject Request?',
-                text: 'Please provide a reason for rejection:',
+                title: 'Reject Request',
+                html: detailsHtml,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc3545',
@@ -410,10 +432,20 @@
             });
         }
 
-        function returnEquipment(requestId) {
+        function returnEquipment(requestId, requesterName, equipmentName, startDate, endDate) {
+            const detailsHtml = `
+                <div style="text-align: left; margin-bottom: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <p><strong>Request ID:</strong> #${requestId}</p>
+                    <p><strong>Borrower:</strong> ${requesterName}</p>
+                    <p><strong>Equipment:</strong> ${equipmentName}</p>
+                    <p><strong>Period:</strong> ${startDate} to ${endDate}</p>
+                </div>
+                <p>Please specify the return condition:</p>
+            `;
+
             Swal.fire({
-                title: 'Return Equipment?',
-                text: 'Please specify the return condition:',
+                title: 'Return Equipment',
+                html: detailsHtml,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#17a2b8',

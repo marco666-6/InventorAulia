@@ -19,6 +19,43 @@
         </div>
     </div>
 
+    <!-- Equipment Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card stat-primary">
+                <div class="stat-icon">
+                    <i class='bx bx-package'></i>
+                </div>
+                <div class="stat-info">
+                    <h4>@Model.Count</h4>
+                    <span>Total Items</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card stat-success">
+                <div class="stat-icon">
+                    <i class='bx bx-check-circle'></i>
+                </div>
+                <div class="stat-info">
+                    <h4>@Model.Sum(e => int.Parse(e.Stock.Split('/')[0]))</h4>
+                    <span>Available Now</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card stat-info">
+                <div class="stat-icon">
+                    <i class='bx bx-category'></i>
+                </div>
+                <div class="stat-info">
+                    <h4>@Model.Select(e => e.CategoryName).Distinct().Count()</h4>
+                    <span>Categories</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Equipment Grid -->
     <div class="row g-4">
         @if (Model != null && Model.Any())
@@ -31,7 +68,7 @@
                             <div class="equipment-code">@equipment.EquipmentCode</div>
                             <div class="equipment-status available">
                                 <i class='bx bx-check-circle'></i>
-                                Available
+                                @equipment.Stock Available
                             </div>
                         </div>
                         <div class="equipment-body">
@@ -48,6 +85,10 @@
                                         <span>@equipment.Brand</span>
                                     </div>
                                 }
+                                <div class="detail-item">
+                                    <i class='bx bx-layer'></i>
+                                    <span>Stock: @equipment.Stock</span>
+                                </div>
                             </div>
                         </div>
                         <div class="equipment-footer">
@@ -305,4 +346,70 @@
             border-color: var(--accent-green) !important;
             color: white !important;
         }
+    
+    /* Add these new styles to your existing CSS */
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        color: white;
+    }
+
+    .stat-primary .stat-icon {
+        background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);
+    }
+
+    .stat-success .stat-icon {
+        background: linear-gradient(135deg, var(--bright-green) 0%, var(--accent-green) 100%);
+    }
+
+    .stat-info .stat-icon {
+        background: linear-gradient(135deg, #17a2b8 0%, #5bc0de 100%);
+    }
+
+    .stat-info h4 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 2px;
+        color: var(--primary-green);
+    }
+
+    .stat-info span {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    /* Update the equipment status to accommodate stock text */
+    .equipment-status {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.875rem;
+        padding: 4px 8px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+
+    .equipment-status.available {
+        background: rgba(3, 192, 60, 0.2);
+    }
 </style>

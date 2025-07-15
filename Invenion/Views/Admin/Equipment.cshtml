@@ -66,7 +66,55 @@
         </div>
     </div>
 
-    <!-- Equipment List -->
+        <!-- Categorized Equipment Stock -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Equipment Stock by Category</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr class="text-center align-middle align-items-center">
+                                <th>Category Name</th>
+                                <th>Total Items</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var categoryGroup in Model.GroupBy(e => e.CategoryName))
+                            {
+                                <tr class="text-center align-middle align-items-center">
+                                    <td><strong>@categoryGroup.Key</strong></td>
+                                    <td>@categoryGroup.Count()</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-info"
+                                                onclick="viewCategoryEquipment('@categoryGroup.Key')" title="View List">
+                                            <i class='bx bx-list-ul'></i> View List
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class='bx bx-category'></i>
+                    </div>
+                    <h4>No Categories Found</h4>
+                    <p>No equipment has been added to any category yet.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* <!-- Equipment List -->
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
@@ -190,6 +238,90 @@
                                             <button type="button" class="btn btn-sm btn-outline-danger"
                                                     onclick="deleteEquipment(@equipment.EquipmentID)" title="View Details">
                                                 <i class='bx bx-trash'></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class='bx bx-package'></i>
+                    </div>
+                    <h4>No Equipment Found</h4>
+                    <p>Start by adding your first equipment to the inventory.</p>
+                    <a href="@Url.Action("AddEquipment")" class="btn btn-primary">
+                        <i class='bx bx-plus'></i>
+                        Add Equipment
+                    </a>
+                </div>
+            }
+        </div>
+    </div> *@
+
+    <!-- Equipment List (Grouped by Equipment Name) -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Equipment List by Name</h5>
+                <div class="search-box">
+                    <input type="text" id="equipmentNameSearch" class="form-control" placeholder="Search equipment by name...">
+                    <i class='bx bx-search'></i>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="equipmentNameTable">
+                        <thead class="table-light">
+                            <tr class="text-center align-middle align-items-center">
+                                <th>Equipment Name</th>
+                                <th>Category</th>
+                                <th>Total Stock</th>
+                                <th>Available</th>
+                                <th>Borrowed</th>
+                                <th>Maintenance</th>
+                                <th>Retired</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var equipmentGroup in Model.GroupBy(e => e.EquipmentName))
+                            {
+                                <tr class="text-center align-middle align-items-center">
+                                    <td>
+                                        <div class="equipment-info">
+                                            <strong>@equipmentGroup.Key</strong>
+                                            @if (!string.IsNullOrEmpty(equipmentGroup.First().Description))
+                                            {
+                                                <small class="text-muted d-block">@equipmentGroup.First().Description</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">@equipmentGroup.First().CategoryName</span>
+                                    </td>
+                                    <td>
+                                        <span style="display: inline-block; width: 20px; height: 20px; background-color: black; color: white; border-radius: 4px; text-align: center; line-height: 20px; font-weight: bold;">
+                                            @equipmentGroup.Count()
+                                        </span>
+                                    </td>
+                                    <td class="bg-primary">@equipmentGroup.Count(e => e.Status == "Available")</td>
+                                    <td class="bg-secondary">@equipmentGroup.Count(e => e.Status == "Borrowed")</td>
+                                    <td class="bg-warning">@equipmentGroup.Count(e => e.Status == "Maintenance")</td>
+                                    <td class="bg-danger text-white">@equipmentGroup.Count(e => e.Status == "Retired")</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button type="button" class="btn btn-sm btn-outline-info"
+                                                    onclick="viewEquipmentDetailsByName('@equipmentGroup.Key')" title="View List">
+                                                <i class='bx bx-list-ul'></i> View List
                                             </button>
                                         </div>
                                     </td>
@@ -503,8 +635,9 @@
 
 @section Scripts {
     <script>
+        const allEquipmentData = @Html.Raw(Json.Serialize(Model));
         // Search functionality
-        document.getElementById('equipmentSearch').addEventListener('keyup', function() {
+        @* document.getElementById('equipmentSearch').addEventListener('keyup', function() {
             const searchTerm = this.value.toLowerCase();
             const tableRows = document.querySelectorAll('#equipmentTable tbody tr');
 
@@ -512,7 +645,202 @@
                 const text = row.textContent.toLowerCase();
                 row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
+        }); *@
+
+                // Search functionality for Equipment Name Table
+        document.getElementById('equipmentNameSearch').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#equipmentNameTable tbody tr');
+
+            tableRows.forEach(row => {
+                const equipmentName = row.querySelector('td:nth-child(1) strong').textContent.toLowerCase();
+                row.style.display = equipmentName.includes(searchTerm) ? '' : 'none';
+            });
         });
+
+        function viewEquipmentDetailsByName(equipmentName) {
+            const filteredEquipment = allEquipmentData.filter(e => e.equipmentName === equipmentName);
+
+            let modalContent = '';
+            if (filteredEquipment.length > 0) {
+                modalContent += `
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Brand/Model</th>
+                                    <th>Serial Number</th>
+                                    <th>Status</th>
+                                    <th>Purchase Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                filteredEquipment.forEach(equipment => {
+                    modalContent += `
+                        <tr>
+                            <td><span class="equipment-code">${equipment.equipmentCode}</span></td>
+                            <td>
+                                ${equipment.brand ? `<strong>${equipment.brand}</strong>` : '<span class="text-muted">-</span>'}
+                            </td>
+                            <td>
+                                ${equipment.serialNumber ? `<code>${equipment.serialNumber}</code>` : '<span class="text-muted">-</span>'}
+                            </td>
+                            <td>
+                                ${(() => {
+                                    switch (equipment.status) {
+                                        case "Available":
+                                            return `<span class="status-badge status-available"><i class='bx bx-check-circle'></i> Available</span>`;
+                                        case "Borrowed":
+                                            return `<span class="status-badge status-borrowed"><i class='bx bx-time'></i> Borrowed</span>`;
+                                        case "Maintenance":
+                                            return `<span class="status-badge status-maintenance"><i class='bx bx-wrench'></i> Maintenance</span>`;
+                                        case "Retired":
+                                            return `<span class="status-badge status-retired"><i class='bx bx-x-circle'></i> Retired</span>`;
+                                        default:
+                                            return `<span>${equipment.status}</span>`;
+                                    }
+                                })()}
+                            </td>
+                            <td>
+                                ${equipment.purchaseDate ? new Date(equipment.purchaseDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '<span class="text-muted">-</span>'}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="@Url.Action("EditEquipment")?id=${equipment.equipmentID}"
+                                       class="btn btn-sm btn-outline-primary" title="Edit">
+                                        <i class='bx bx-edit'></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            onclick="deleteEquipment(${equipment.equipmentID})" title="Delete">
+                                        <i class='bx bx-trash'></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                modalContent += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else {
+                modalContent = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class='bx bx-package'></i>
+                        </div>
+                        <h4>No Details Found</h4>
+                        <p>No detailed items found for <strong>${equipmentName}</strong>.</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('equipmentDetailsContent').innerHTML = modalContent;
+            const equipmentDetailsModal = new bootstrap.Modal(document.getElementById('equipmentDetailsModal'));
+            equipmentDetailsModal.show();
+        }
+
+        // Remove the old search functionality as it's replaced by equipmentNameSearch
+        // document.getElementById('equipmentSearch').addEventListener('keyup', function() { ... });
+
+        function viewCategoryEquipment(categoryName) {
+            // Filter the original data based on the categoryName
+            const filteredEquipment = allEquipmentData.filter(e => e.categoryName === categoryName);
+
+            let modalContent = '';
+            if (filteredEquipment.length > 0) {
+                console.log("yes");
+                modalContent += `
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Equipment Name</th>
+                                    <th>Brand/Model</th>
+                                    <th>Serial Number</th>
+                                    <th>Status</th>
+                                    <th>Purchase Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                filteredEquipment.forEach(equipment => {
+                    modalContent += `
+                        <tr>
+                            <td><span class="equipment-code">${equipment.equipmentCode}</span></td>
+                            <td>
+                                <div class="equipment-info">
+                                    <strong>${equipment.equipmentName}</strong>
+                                    ${equipment.description ? `<small class="text-muted d-block">${equipment.description}</small>` : ''}
+                                </div>
+                            </td>
+                            <td>
+                                ${equipment.brand ? `<strong>${equipment.brand}</strong>` : '<span class="text-muted">-</span>'}
+                            </td>
+                            <td>
+                                ${equipment.serialNumber ? `<code>${equipment.serialNumber}</code>` : '<span class="text-muted">-</span>'}
+                            </td>
+                            <td>
+                                ${(() => {
+                                    switch (equipment.status) {
+                                        case "Available":
+                                            return `<span class="status-badge status-available"><i class='bx bx-check-circle'></i> Available</span>`;
+                                        case "Borrowed":
+                                            return `<span class="status-badge status-borrowed"><i class='bx bx-time'></i> Borrowed</span>`;
+                                        case "Maintenance":
+                                            return `<span class="status-badge status-maintenance"><i class='bx bx-wrench'></i> Maintenance</span>`;
+                                        case "Retired":
+                                            return `<span class="status-badge status-retired"><i class='bx bx-x-circle'></i> Retired</span>`;
+                                        default:
+                                            return `<span>${equipment.status}</span>`;
+                                    }
+                                })()}
+                            </td>
+                            <td>
+                                ${equipment.purchaseDate ? new Date(equipment.purchaseDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '<span class="text-muted">-</span>'}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="@Url.Action("EditEquipment")?id=${equipment.equipmentID}"
+                                    class="btn btn-sm btn-outline-primary" title="Edit">
+                                        <i class='bx bx-edit'></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            onclick="deleteEquipment(${equipment.equipmentID})" title="Delete">
+                                        <i class='bx bx-trash'></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                modalContent += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else {
+                modalContent = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class='bx bx-package'></i>
+                        </div>
+                        <h4>No Equipment Found in this Category</h4>
+                        <p>There are no items listed for the category: <strong>${categoryName}</strong>.</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('equipmentDetailsContent').innerHTML = modalContent;
+            const equipmentDetailsModal = new bootstrap.Modal(document.getElementById('equipmentDetailsModal'));
+            equipmentDetailsModal.show();
+        }
 
         function deleteEquipment(equipmentId) {
             if (!equipmentId) {

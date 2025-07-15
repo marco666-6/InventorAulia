@@ -162,7 +162,7 @@ namespace Invenion.Controllers
                 List<Equipment> availableEquipment = new List<Equipment>();
                 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
-                {                                               // menjalankan perintah di storepro
+                {                                               
                     using (SqlCommand command = new SqlCommand("sp_GetAvailableEquipment", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
@@ -178,7 +178,8 @@ namespace Invenion.Controllers
                                     EquipmentCode = reader["EquipmentCode"].ToString(),
                                     EquipmentName = reader["EquipmentName"].ToString(),
                                     Brand = reader["Brand"]?.ToString(),
-                                    CategoryName = reader["CategoryName"].ToString()
+                                    CategoryName = reader["CategoryName"].ToString(),
+                                    Stock = $"{reader["AvailableCount"]}/{reader["StockCount"]}" // Format as "Available/Total"
                                 });
                             }
                         }
