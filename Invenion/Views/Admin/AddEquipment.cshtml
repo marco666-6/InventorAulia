@@ -29,8 +29,9 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label asp-for="EquipmentCode" class="form-label required">Equipment Code</label>
-                            <input asp-for="EquipmentCode" class="form-control" placeholder="Enter equipment code" />
+                            <label asp-for="EquipmentCode" class="form-label required">Equipment Code Base</label>
+                            <input asp-for="EquipmentCode" class="form-control" placeholder="Enter equipment code base (e.g., LAP)" />
+                            <small class="form-text text-muted">System will auto-generate unique codes like LAP001, LAP002, etc.</small>
                             <span asp-validation-for="EquipmentCode" class="text-danger"></span>
                         </div>
                     </div>
@@ -72,13 +73,6 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group mb-3">
-                            <label asp-for="SerialNumber" class="form-label">Serial Number</label>
-                            <input asp-for="SerialNumber" class="form-control" placeholder="Enter serial number" />
-                            <span asp-validation-for="SerialNumber" class="text-danger"></span>
-                        </div>
-                    </div>
                     <div class="col-md-3">
                         <div class="form-group mb-3">
                             <label asp-for="PurchaseDate" class="form-label">Purchase Date</label>
@@ -88,9 +82,27 @@
                     </div>
                     <div class="col-md-3">
                         <div class="form-group mb-3">
-                            <label asp-for="Stock" class="form-label">Quantity</label>
-                            <input asp-for="Stock" class="form-control" placeholder="Enter Quantity" />
+                            <label asp-for="Stock" class="form-label required">Quantity</label>
+                            <input asp-for="Stock" type="number" min="1" max="100" class="form-control" placeholder="Enter quantity" id="quantityInput" />
+                            <small class="form-text text-muted">Number of items to add (1-100)</small>
                             <span asp-validation-for="Stock" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label class="form-label">Serial Number Input Method</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="serialInputMethod" id="autoSerial" value="auto" checked>
+                                <label class="form-check-label" for="autoSerial">
+                                    Auto-generate serial numbers
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="serialInputMethod" id="manualSerial" value="manual">
+                                <label class="form-check-label" for="manualSerial">
+                                    Enter serial numbers manually
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -101,8 +113,39 @@
                     <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
 
+                <!-- Serial Numbers Input Section -->
+                <div id="serialNumbersSection" style="display: none;">
+                    <div class="card border-info mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class='bx bx-barcode'></i> Serial Numbers
+                                <span class="badge bg-light text-dark ms-2" id="serialCountBadge">0</span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Enter Serial Number</label>
+                                        <input type="text" id="serialNumberInput" class="form-control" placeholder="Enter serial number">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button type="button" class="btn btn-info d-block" id="addSerialBtn">
+                                            <i class='bx bx-plus'></i> Add Serial
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="serialNumbersList" class="mt-3"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
                         <i class='bx bx-plus'></i> Add Equipment
                     </button>
                     <a href="@Url.Action("Equipment", "Admin")" class="btn btn-secondary">
@@ -113,6 +156,11 @@
         </div>
     </div>
 </div>
+
+<!-- Hidden form for serial numbers -->
+<form id="hiddenSerialForm" style="display: none;">
+    <div id="hiddenSerialInputs"></div>
+</form>
 
 <!-- Category Management Modal -->
 <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
@@ -300,6 +348,12 @@
             border-color: #6c757d;
         }
 
+    .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+        color: white;
+    }
+
     .text-danger {
         font-size: 0.875rem;
         margin-top: 5px;
@@ -386,13 +440,67 @@
         .category-actions .btn {
             margin-right: 5px;
         }
+
+    .serial-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        margin-bottom: 5px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+    }
+
+    .serial-item-text {
+        font-family: monospace;
+        font-weight: 500;
+    }
+
+    .serial-item-remove {
+        color: #dc3545;
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    .serial-item-remove:hover {
+        color: #c82333;
+    }
+
+    .form-check {
+        margin-bottom: 10px;
+    }
+
+    .form-check-input:checked {
+        background-color: #006A4E;
+        border-color: #006A4E;
+    }
+
+    .bg-info {
+        background-color: #17a2b8 !important;
+    }
+
+    .border-info {
+        border-color: #17a2b8 !important;
+    }
 </style>
 
 @section Scripts {
     <script>
         let categoriesData = [];
+        let serialNumbers = [];
+        let currentQuantity = 1;
 
         $(document).ready(function() {
+            // Initialize event handlers
+            initializeEventHandlers();
+            
+            // Set default quantity
+            $('#quantityInput').val(1);
+            currentQuantity = 1;
+        });
+
+        function initializeEventHandlers() {
             // Open category management modal
             $('#manageCategoriesBtn').click(function() {
                 loadCategories();
@@ -410,64 +518,211 @@
                 updateCategory();
             });
 
-            // Form submission with SweetAlert
-            $('#addEquipmentForm').on('submit', function(e) {
-                e.preventDefault();
+            // Quantity change handler
+            $('#quantityInput').on('input', function() {
+                currentQuantity = parseInt($(this).val()) || 1;
+                updateSerialSection();
+            });
 
-                var isValid = true;
-                var requiredFields = ['EquipmentCode', 'EquipmentName', 'CategoryID'];
+            // Serial input method change handler
+            $('input[name="serialInputMethod"]').change(function() {
+                updateSerialSection();
+            });
 
-                requiredFields.forEach(function(fieldName) {
-                    var field = $('[name="' + fieldName + '"]');
-                    if (!field.val().trim()) {
-                        isValid = false;
-                        field.addClass('is-invalid');
-                    } else {
-                        field.removeClass('is-invalid');
-                    }
-                });
+            // Add serial number button
+            $('#addSerialBtn').click(function() {
+                addSerialNumber();
+            });
 
-                if (isValid) {
-                    Swal.fire({
-                        title: 'Add Equipment?',
-                        text: 'Are you sure you want to add this equipment?',
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#006A4E',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Yes, add it!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            Swal.fire({
-                                title: 'Adding Equipment...',
-                                allowOutsideClick: false,
-                                didOpen: () => {
-                                    Swal.showLoading();
-                                }
-                            });
-
-                            this.submit();
-                        }
-                    });
-                } else {
-                    Swal.fire({
-                        title: 'Validation Error',
-                        text: 'Please fill in all required fields.',
-                        icon: 'error',
-                        confirmButtonColor: '#006A4E'
-                    });
+            // Serial number input enter key
+            $('#serialNumberInput').keypress(function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    addSerialNumber();
                 }
             });
 
+            // Form submission handler
+            $('#addEquipmentForm').on('submit', function(e) {
+                e.preventDefault();
+                handleFormSubmission();
+            });
+
+            // Input validation handlers
             $('input, select, textarea').on('input change', function() {
                 $(this).removeClass('is-invalid');
             });
-        });
+        }
 
+        function updateSerialSection() {
+            const isManual = $('input[name="serialInputMethod"]:checked').val() === 'manual';
+            const section = $('#serialNumbersSection');
+            
+            if (isManual) {
+                section.show();
+                serialNumbers = [];
+                updateSerialNumbersList();
+            } else {
+                section.hide();
+                serialNumbers = [];
+            }
+        }
+
+        function addSerialNumber() {
+            const input = $('#serialNumberInput');
+            const serial = input.val().trim();
+            
+            if (!serial) {
+                Swal.fire('Error', 'Please enter a serial number.', 'error');
+                return;
+            }
+
+            if (serialNumbers.includes(serial)) {
+                Swal.fire('Error', 'This serial number has already been added.', 'error');
+                return;
+            }
+
+            if (serialNumbers.length >= currentQuantity) {
+                Swal.fire('Error', `You can only add ${currentQuantity} serial numbers.`, 'error');
+                return;
+            }
+
+            serialNumbers.push(serial);
+            input.val('');
+            updateSerialNumbersList();
+        }
+
+        function updateSerialNumbersList() {
+            const container = $('#serialNumbersList');
+            const badge = $('#serialCountBadge');
+            
+            container.empty();
+            badge.text(serialNumbers.length);
+
+            serialNumbers.forEach(function(serial, index) {
+                const item = $(`
+                    <div class="serial-item">
+                        <span class="serial-item-text">${serial}</span>
+                        <span class="serial-item-remove" onclick="removeSerialNumber(${index})" title="Remove">
+                            <i class='bx bx-x'></i>
+                        </span>
+                    </div>
+                `);
+                container.append(item);
+            });
+
+            if (serialNumbers.length === 0) {
+                container.append('<p class="text-muted">No serial numbers added yet.</p>');
+            }
+        }
+
+        function removeSerialNumber(index) {
+            serialNumbers.splice(index, 1);
+            updateSerialNumbersList();
+        }
+
+        function handleFormSubmission() {
+            const isManual = $('input[name="serialInputMethod"]:checked').val() === 'manual';
+            
+            // Validate required fields
+            if (!validateRequiredFields()) {
+                return;
+            }
+
+            // Validate serial numbers if manual input
+            if (isManual && serialNumbers.length !== currentQuantity) {
+                Swal.fire({
+                    title: 'Serial Numbers Required',
+                    text: `Please add ${currentQuantity} serial numbers (currently ${serialNumbers.length}).`,
+                    icon: 'error',
+                    confirmButtonColor: '#006A4E'
+                });
+                return;
+            }
+
+            // Prepare form data
+            prepareFormData();
+
+            // Show confirmation dialog
+            Swal.fire({
+                title: 'Add Equipment?',
+                text: `Are you sure you want to add ${currentQuantity} equipment items?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#006A4E',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, add them!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Adding Equipment...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    document.getElementById('addEquipmentForm').submit();
+                }
+            });
+        }
+
+        function validateRequiredFields() {
+            let isValid = true;
+            const requiredFields = ['EquipmentCode', 'EquipmentName', 'CategoryID', 'Stock'];
+
+            requiredFields.forEach(function(fieldName) {
+                const field = $(`[name="${fieldName}"]`);
+                if (!field.val() || field.val().trim() === '') {
+                    isValid = false;
+                    field.addClass('is-invalid');
+                } else {
+                    field.removeClass('is-invalid');
+                }
+            });
+
+            const quantity = parseInt($('#quantityInput').val());
+            if (quantity < 1 || quantity > 100) {
+                isValid = false;
+                $('#quantityInput').addClass('is-invalid');
+            }
+
+            if (!isValid) {
+                Swal.fire({
+                    title: 'Validation Error',
+                    text: 'Please fill in all required fields correctly.',
+                    icon: 'error',
+                    confirmButtonColor: '#006A4E'
+                });
+            }
+
+            return isValid;
+        }
+
+        function prepareFormData() {
+            const hiddenContainer = $('#hiddenSerialInputs');
+            hiddenContainer.empty();
+
+            const isManual = $('input[name="serialInputMethod"]:checked').val() === 'manual';
+            
+            // Add serial input method
+            hiddenContainer.append(`<input type="hidden" name="SerialInputMethod" value="${isManual ? 'manual' : 'auto'}" />`);
+
+            // Add serial numbers if manual
+            if (isManual) {
+                serialNumbers.forEach(function(serial, index) {
+                    hiddenContainer.append(`<input type="hidden" name="SerialNumbers[${index}]" value="${serial}" />`);
+                });
+            }
+
+            // Append hidden inputs to main form
+            $('#addEquipmentForm').append(hiddenContainer.html());
+        }
+
+        // Category management functions (unchanged)
         function loadCategories() {
             $.get('@Url.Action("GetCategories", "Admin")', function(response) {
                 if (response.success) {
-                    console.log(response);
                     categoriesData = response.data;
                     displayCategories();
                 } else {

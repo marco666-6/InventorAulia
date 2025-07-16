@@ -113,7 +113,6 @@ namespace Invenion.Controllers
                                 {
                                     EquipmentID = Convert.ToInt32(reader["EquipmentID"]),
                                     EquipmentCode = reader["EquipmentCode"].ToString(),
-                                    Stock = reader["Stock"].ToString(),
                                     EquipmentName = reader["EquipmentName"].ToString(),
                                     Brand = reader["Brand"]?.ToString(),
                                     SerialNumber = reader["SerialNumber"]?.ToString(),
@@ -185,6 +184,86 @@ namespace Invenion.Controllers
             }
         }
 
+        // // GET: Add Equipment
+        // public IActionResult AddEquipment()
+        // {
+        //     var authCheck = CheckAuth();
+        //     if (authCheck != null) return authCheck;
+
+        //     LoadCategories();
+        //     return View();
+        // }
+
+        // // POST: Add Equipment
+        // [HttpPost]
+        // [ValidateAntiForgeryToken]
+        // public IActionResult AddEquipment(Equipment Item)
+        // {
+        //     var authCheck = CheckAuth();
+        //     if (authCheck != null) return authCheck;
+
+        //     try
+        //     {
+        //         if (!ModelState.IsValid)
+        //         {
+        //             LoadCategories();
+        //             return View(Item);
+        //         }
+
+        //         using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
+        //         {                                               //manggil storepro
+        //             using (SqlCommand command = new SqlCommand("sp_AddEquipment", connection)) 
+        //             {
+        //                 command.CommandType = CommandType.StoredProcedure;
+        //                 command.Parameters.AddWithValue("@EquipmentCode", Item.EquipmentCode);
+        //                 command.Parameters.AddWithValue("@EquipmentName", Item.EquipmentName);
+        //                 command.Parameters.AddWithValue("@CategoryID", Item.CategoryID);
+        //                 command.Parameters.AddWithValue("@Brand", Item.Brand ?? (object)DBNull.Value);
+        //                 command.Parameters.AddWithValue("@SerialNumber", Item.SerialNumber ?? (object)DBNull.Value);
+        //                 command.Parameters.AddWithValue("@Description", Item.Description ?? (object)DBNull.Value);
+        //                 command.Parameters.AddWithValue("@PurchaseDate", Item.PurchaseDate ?? (object)DBNull.Value);
+
+        //                 connection.Open();
+        //                 var result = command.ExecuteScalar(); //menjalankan storepro
+
+        //                 if (result != null)
+        //                 {
+        //                     Console.WriteLine("Adding SUCCESSFUL - redirecting back");
+        //                     TempData["SuccessMessage"] = "Equipment added successfully!";
+        //                     return RedirectToAction("Equipment");
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     catch (SqlException ex)
+        //     {
+        //         Console.WriteLine($"SQL EXCEPTION caught: {ex.Message}");
+        //         Console.WriteLine($"SQL Error Number: {ex.Number}");
+        //         Console.WriteLine($"SQL Severity: {ex.Class}");
+        //         Console.WriteLine($"SQL State: {ex.State}");
+        //         if (ex.Message.Contains("EquipmentCode"))
+        //         {
+        //             ModelState.AddModelError("EquipmentCode", "Equipment code already exists.");
+        //         }
+        //         else
+        //         {
+        //             ModelState.AddModelError("", "Error adding equipment. Please try again.");
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine($"GENERAL EXCEPTION caught: {ex.Message}");
+        //         Console.WriteLine($"Exception Type: {ex.GetType().Name}");
+        //         Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+        //         ModelState.AddModelError("", "An error occurred. Please try again.");
+        //     }
+
+        //     LoadCategories();
+        //     return View(Item);
+        // }
+
+        // Updated AdminController methods for bulk equipment addition
+
         // GET: Add Equipment
         public IActionResult AddEquipment()
         {
@@ -195,10 +274,10 @@ namespace Invenion.Controllers
             return View();
         }
 
-        // POST: Add Equipment
+        // POST: Add Equipment with Bulk Support
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddEquipment(Equipment Item)
+        public IActionResult AddEquipment(Equipment Item, string SerialInputMethod, List<string> SerialNumbers)
         {
             var authCheck = CheckAuth();
             if (authCheck != null) return authCheck;
@@ -211,27 +290,99 @@ namespace Invenion.Controllers
                     return View(Item);
                 }
 
-                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
-                {                                               //manggil storepro
-                    using (SqlCommand command = new SqlCommand("sp_AddEquipment", connection)) 
+                // Parse quantity from Stock field
+                if (!int.TryParse(Item.Stock, out int quantity) || quantity < 1 || quantity > 100)
+                {
+                    ModelState.AddModelError("Stock", "Please enter a valid quantity between 1 and 100.");
+                    LoadCategories();
+                    return View(Item);
+                }
+
+                // Validate serial numbers if manual input
+                if (SerialInputMethod == "manual")
+                {
+                    if (SerialNumbers == null || SerialNumbers.Count != quantity)
                     {
-                        command.CommandType = CommandType.StoredProcedure;
-                        command.Parameters.AddWithValue("@EquipmentCode", Item.EquipmentCode);
-                        command.Parameters.AddWithValue("@EquipmentName", Item.EquipmentName);
-                        command.Parameters.AddWithValue("@CategoryID", Item.CategoryID);
-                        command.Parameters.AddWithValue("@Brand", Item.Brand ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@SerialNumber", Item.SerialNumber ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@Description", Item.Description ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@PurchaseDate", Item.PurchaseDate ?? (object)DBNull.Value);
+                        ModelState.AddModelError("", $"Please provide exactly {quantity} serial numbers.");
+                        LoadCategories();
+                        return View(Item);
+                    }
 
-                        connection.Open();
-                        var result = command.ExecuteScalar(); //menjalankan storepro
+                    // Remove empty serial numbers and validate
+                    SerialNumbers = SerialNumbers.Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+                    if (SerialNumbers.Count != quantity)
+                    {
+                        ModelState.AddModelError("", $"Please provide exactly {quantity} valid serial numbers.");
+                        LoadCategories();
+                        return View(Item);
+                    }
+                }
 
-                        if (result != null)
+                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
+                {
+                    connection.Open();
+                    using (SqlTransaction transaction = connection.BeginTransaction())
+                    {
+                        try
                         {
-                            Console.WriteLine("Adding SUCCESSFUL - redirecting back");
-                            TempData["SuccessMessage"] = "Equipment added successfully!";
-                            return RedirectToAction("Equipment");
+                            List<int> addedEquipmentIds = new List<int>();
+
+                            // Generate unique equipment codes and add each item
+                            for (int i = 0; i < quantity; i++)
+                            {
+                                // Generate unique equipment code
+                                string uniqueCode = GenerateUniqueEquipmentCode(Item.EquipmentCode, connection, transaction);
+                                
+                                // Determine serial number
+                                string serialNumber = null;
+                                if (SerialInputMethod == "manual" && SerialNumbers != null && i < SerialNumbers.Count)
+                                {
+                                    serialNumber = SerialNumbers[i];
+                                }
+                                else if (SerialInputMethod == "auto")
+                                {
+                                    serialNumber = GenerateSerialNumber(Item.EquipmentCode, i + 1);
+                                }
+
+                                // Add single equipment item
+                                using (SqlCommand command = new SqlCommand("sp_AddEquipment", connection, transaction))
+                                {
+                                    command.CommandType = CommandType.StoredProcedure;
+                                    command.Parameters.AddWithValue("@EquipmentCode", uniqueCode);
+                                    command.Parameters.AddWithValue("@EquipmentName", Item.EquipmentName);
+                                    command.Parameters.AddWithValue("@CategoryID", Item.CategoryID);
+                                    command.Parameters.AddWithValue("@Brand", Item.Brand ?? (object)DBNull.Value);
+                                    command.Parameters.AddWithValue("@SerialNumber", serialNumber ?? (object)DBNull.Value);
+                                    command.Parameters.AddWithValue("@Description", Item.Description ?? (object)DBNull.Value);
+                                    command.Parameters.AddWithValue("@PurchaseDate", Item.PurchaseDate ?? (object)DBNull.Value);
+
+                                    var result = command.ExecuteScalar();
+                                    if (result != null && int.TryParse(result.ToString(), out int equipmentId))
+                                    {
+                                        addedEquipmentIds.Add(equipmentId);
+                                    }
+                                }
+                            }
+
+                            // Commit transaction if all items were added successfully
+                            if (addedEquipmentIds.Count == quantity)
+                            {
+                                transaction.Commit();
+                                Console.WriteLine($"Bulk adding SUCCESSFUL - {quantity} items added");
+                                TempData["SuccessMessage"] = $"Successfully added {quantity} equipment items!";
+                                return RedirectToAction("Equipment");
+                            }
+                            else
+                            {
+                                transaction.Rollback();
+                                ModelState.AddModelError("", "Error occurred while adding equipment items. Please try again.");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            Console.WriteLine($"Transaction EXCEPTION: {ex.Message}");
+                            throw;
                         }
                     }
                 }
@@ -242,6 +393,7 @@ namespace Invenion.Controllers
                 Console.WriteLine($"SQL Error Number: {ex.Number}");
                 Console.WriteLine($"SQL Severity: {ex.Class}");
                 Console.WriteLine($"SQL State: {ex.State}");
+                
                 if (ex.Message.Contains("EquipmentCode"))
                 {
                     ModelState.AddModelError("EquipmentCode", "Equipment code already exists.");
@@ -261,6 +413,82 @@ namespace Invenion.Controllers
 
             LoadCategories();
             return View(Item);
+        }
+
+        // Helper method to generate unique equipment codes
+        private string GenerateUniqueEquipmentCode(string baseCode, SqlConnection connection, SqlTransaction transaction)
+        {
+            string uniqueCode = baseCode;
+            int counter = 1;
+            
+            while (true)
+            {
+                string testCode = $"{baseCode}{counter:D3}"; // Format as LAP001, LAP002, etc.
+                
+                // Check if code exists
+                using (SqlCommand checkCommand = new SqlCommand(
+                    "SELECT COUNT(*) FROM Equipment WHERE EquipmentCode = @Code", 
+                    connection, transaction))
+                {
+                    checkCommand.Parameters.AddWithValue("@Code", testCode);
+                    int count = (int)checkCommand.ExecuteScalar();
+                    
+                    if (count == 0)
+                    {
+                        uniqueCode = testCode;
+                        break;
+                    }
+                }
+                
+                counter++;
+                
+                // Safety check to prevent infinite loop
+                if (counter > 9999)
+                {
+                    throw new InvalidOperationException("Unable to generate unique equipment code");
+                }
+            }
+            
+            return uniqueCode;
+        }
+
+        // Helper method to generate serial numbers for auto mode
+        private string GenerateSerialNumber(string baseCode, int itemNumber)
+        {
+            // Generate a simple serial number based on current date and item number
+            string datePart = DateTime.Now.ToString("yyMMdd");
+            return $"{baseCode}-{datePart}-{itemNumber:D3}";
+        }
+
+        // You may also want to add this method to get the next available equipment code for preview
+        [HttpGet]
+        public JsonResult GetNextEquipmentCode(string baseCode, int quantity)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
+                {
+                    connection.Open();
+                    List<string> codes = new List<string>();
+                    
+                    for (int i = 0; i < quantity; i++)
+                    {
+                        using (SqlTransaction transaction = connection.BeginTransaction())
+                        {
+                            string nextCode = GenerateUniqueEquipmentCode(baseCode, connection, transaction);
+                            codes.Add(nextCode);
+                            transaction.Rollback(); // Don't actually reserve the codes
+                        }
+                    }
+                    
+                    return Json(new { success = true, codes = codes });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting next equipment code: {ex.Message}");
+                return Json(new { success = false, message = "Error generating equipment codes" });
+            }
         }
 
         // GET: Edit Equipment
