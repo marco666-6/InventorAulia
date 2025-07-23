@@ -156,10 +156,9 @@ namespace Invenion.Controllers
         {
             var authCheck = CheckAuth();
             if (authCheck != null) return authCheck;
-
             try
             {
-                List<Equipment> availableEquipment = new List<Equipment>();
+                List<Equipment> allEquipment = new List<Equipment>(); // Changed variable name to reflect all equipment
                 
                 using (SqlConnection connection = new SqlConnection(_dal.GetConnectionString()))
                 {                                               
@@ -172,21 +171,24 @@ namespace Invenion.Controllers
                         {
                             while (reader.Read())
                             {
-                                availableEquipment.Add(new Equipment
+                                allEquipment.Add(new Equipment
                                 {
                                     EquipmentID = Convert.ToInt32(reader["EquipmentID"]),
                                     EquipmentCode = reader["EquipmentCode"].ToString(),
                                     EquipmentName = reader["EquipmentName"].ToString(),
                                     Brand = reader["Brand"]?.ToString(),
                                     CategoryName = reader["CategoryName"].ToString(),
-                                    Stock = $"{reader["AvailableCount"]}/{reader["StockCount"]}" // Format as "Available/Total"
+                                    Status = reader["Status"].ToString(), // Read the Status
+                                    // Stock will be calculated and displayed in the view based on grouping
+                                    // For now, we can still populate it if needed, but the view will use grouped data
+                                    Stock = $"{reader["AvailableCount"]}/{reader["StockCount"]}" // Keep this for now, but the view will use grouped data
                                 });
                             }
                         }
                     }
                 }
-
-                return View(availableEquipment);
+                // Pass all equipment to the view. The view will handle grouping.
+                return View(allEquipment);
             }
             catch (Exception ex)
             {

@@ -2,6 +2,26 @@
 @{
     ViewData["Title"] = "Available Equipment";
     Layout = "~/Views/Shared/_LayoutStaff.cshtml";
+
+    // Group the model by EquipmentName
+    var groupedEquipment = Model
+        .GroupBy(e => e.EquipmentName)
+        .Select(g => new
+        {
+            EquipmentName = g.Key,
+            CategoryName = g.First().CategoryName, // Assuming category is consistent within a group
+            Brand = g.First().Brand, // Assuming brand is consistent within a group
+            TotalStock = g.Count(),
+            AvailableCount = g.Count(e => e.Status == "Available"),
+            Items = g.ToList() // List of individual equipment items in this group
+        })
+        .OrderBy(g => g.EquipmentName)
+        .ToList();
+
+    // Calculate total available items for the stat card
+    int totalAvailableNow = groupedEquipment.Sum(g => g.AvailableCount);
+    int totalCategories = groupedEquipment.Select(g => g.CategoryName).Distinct().Count();
+    int totalUniqueEquipmentTypes = groupedEquipment.Count(); // Count of unique equipment names
 }
 
 <div class="equipment-container">
@@ -27,8 +47,8 @@
                     <i class='bx bx-package'></i>
                 </div>
                 <div class="stat-info">
-                    <h4>@Model.Count</h4>
-                    <span>Total Items</span>
+                    <h4>@totalUniqueEquipmentTypes</h4>
+                    <span>Unique Equipment Types</span>
                 </div>
             </div>
         </div>
@@ -38,7 +58,7 @@
                     <i class='bx bx-check-circle'></i>
                 </div>
                 <div class="stat-info">
-                    <h4>@Model.Sum(e => int.Parse(e.Stock.Split('/')[0]))</h4>
+                    <h4>@totalAvailableNow</h4>
                     <span>Available Now</span>
                 </div>
             </div>
@@ -49,54 +69,54 @@
                     <i class='bx bx-category'></i>
                 </div>
                 <div class="stat-info">
-                    <h4>@Model.Select(e => e.CategoryName).Distinct().Count()</h4>
+                    <h4>@totalCategories</h4>
                     <span>Categories</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Equipment Grid -->
+    <!-- Equipment Grid (Grouped) -->
     <div class="row g-4">
-        @if (Model != null && Model.Any())
+        @if (groupedEquipment != null && groupedEquipment.Any())
         {
-            @foreach (var equipment in Model)
+            @foreach (var group in groupedEquipment)
             {
                 <div class="col-xl-4 col-lg-6 col-md-6">
                     <div class="equipment-card">
                         <div class="equipment-header">
-                            <div class="equipment-code">@equipment.EquipmentCode</div>
+                            <div class="equipment-code">@group.EquipmentName</div> @* Display Equipment Name here *@
                             <div class="equipment-status available">
                                 <i class='bx bx-check-circle'></i>
-                                @equipment.Stock Available
+                                @group.AvailableCount / @group.TotalStock Available
                             </div>
                         </div>
                         <div class="equipment-body">
-                            <h5 class="equipment-name">@equipment.EquipmentName</h5>
+                            <h5 class="equipment-name">@group.EquipmentName</h5>
                             <div class="equipment-details">
                                 <div class="detail-item">
                                     <i class='bx bx-category'></i>
-                                    <span>@equipment.CategoryName</span>
+                                    <span>@group.CategoryName</span>
                                 </div>
-                                @if (!string.IsNullOrEmpty(equipment.Brand))
+                                @if (!string.IsNullOrEmpty(group.Brand))
                                 {
                                     <div class="detail-item">
                                         <i class='bx bx-award'></i>
-                                        <span>@equipment.Brand</span>
+                                        <span>@group.Brand</span>
                                     </div>
                                 }
                                 <div class="detail-item">
                                     <i class='bx bx-layer'></i>
-                                    <span>Stock: @equipment.Stock</span>
+                                    <span>Stock: @group.AvailableCount / @group.TotalStock</span>
                                 </div>
                             </div>
                         </div>
                         <div class="equipment-footer">
-                            <a href="@Url.Action("SubmitRequest", "Staff", new { equipmentId = equipment.EquipmentID })"
-                               class="btn btn-primary btn-sm">
-                                <i class='bx bx-send'></i>
-                                Request This Item
-                            </a>
+                            <button type="button" class="btn btn-primary btn-sm"
+                                    onclick="showEquipmentDetails('@group.EquipmentName')">
+                                <i class='bx bx-list-ul'></i>
+                                View Details & Request
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -115,7 +135,25 @@
     </div>
 </div>
 
+<!-- Equipment Details Modal -->
+<div class="modal fade" id="equipmentDetailsModal" tabindex="-1" aria-labelledby="equipmentDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="equipmentDetailsModalLabel">Equipment Details for <span id="modalEquipmentName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalEquipmentList">
+                    <!-- Individual equipment items will be loaded here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
+    /* ... (Keep your existing CSS styles as they are, no changes needed here) ... */
     :root {
         --primary-green: #003200;
         --secondary-green: #006A4E;
@@ -412,4 +450,128 @@
     .equipment-status.available {
         background: rgba(3, 192, 60, 0.2);
     }
+
+    /* New styles for modal content */
+    .modal-item-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+    }
+
+    .modal-item-details {
+        flex-grow: 1;
+    }
+
+    .modal-item-details strong {
+        color: var(--primary-green);
+    }
+
+    .modal-item-details small {
+        display: block;
+        color: #6c757d;
+    }
+
+    .modal-item-status {
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 5px;
+        font-size: 0.85rem;
+    }
+
+    .modal-item-status.available {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .modal-item-status.borrowed {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .modal-item-status.maintenance {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
 </style>
+
+@section Scripts {
+    <script>
+        // Store the full equipment data from the model for JavaScript access
+        const allEquipmentData = @Html.Raw(Json.Serialize(Model));
+
+        function showEquipmentDetails(equipmentName) {
+            // Filter equipment items belonging to the clicked group
+            const itemsInGroup = allEquipmentData.filter(e => e.equipmentName === equipmentName);
+
+            // Update modal title
+            document.getElementById('modalEquipmentName').textContent = equipmentName;
+
+            let modalContent = '';
+            if (itemsInGroup.length > 0) {
+                itemsInGroup.forEach(item => {
+                    // Determine status class for styling
+                    let statusClass = '';
+                    let statusText = item.status;
+                    if (item.status === 'Available') {
+                        statusClass = 'available';
+                    } else if (item.status === 'Borrowed') {
+                        statusClass = 'borrowed';
+                    } else if (item.status === 'Maintenance') {
+                        statusClass = 'maintenance';
+                    }
+
+                    modalContent += `
+                        <div class="modal-item-card">
+                            <div class="modal-item-details">
+                                <strong>${item.equipmentCode}</strong>
+                                <small>${item.brand ? item.brand : 'N/A'}</small>
+                            </div>
+                            <div class="modal-item-status ${statusClass}">
+                                ${statusText}
+                            </div>
+                            <div class="modal-item-actions ms-3">
+                                ${item.status === 'Available' ?
+                                    `<a href="@Url.Action("SubmitRequest", "Staff")?equipmentId=${item.equipmentID}" class="btn btn-primary btn-sm">
+                                        <i class='bx bx-send'></i> Request
+                                    </a>`
+                                    :
+                                    `<button class="btn btn-secondary btn-sm" disabled>
+                                        <i class='bx bx-info-circle'></i> Not Available
+                                    </button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                modalContent = `
+                    <div class="empty-state">
+                        <i class='bx bx-package'></i>
+                        <h4>No Items Found</h4>
+                        <p>No individual items found for this equipment type.</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('modalEquipmentList').innerHTML = modalContent;
+
+            // Show the modal
+            const equipmentDetailsModal = new bootstrap.Modal(document.getElementById('equipmentDetailsModal'));
+            equipmentDetailsModal.show();
+        }
+
+        // Auto-hide alerts after 5 seconds (keep existing functionality)
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+}
